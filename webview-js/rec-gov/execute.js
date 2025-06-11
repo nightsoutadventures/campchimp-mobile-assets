@@ -21,7 +21,9 @@
                     .catch(error => {
                         window.webkit.messageHandlers.dateSelector.postMessage({
                             success: false,
-                            message: 'Error: ' + error.toString()
+                            message: 'Error: ' + error.toString(),
+                            stack: error.stack,
+                            selectedDates: null
                         });
                         return false;
                     });
