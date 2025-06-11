@@ -3,7 +3,7 @@
             // Initial step: Wait for page to be ready
             await new Promise((resolve, reject) => {
                 const waitForInitialElement = () => {
-                    const searchBox = document.querySelector('.hidden.lg\\\\:flex.items-center.shadow-teal-input-shadow') ||
+                    const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
                                     document.querySelector('div:has(> span.truncate)');
 
                     if (searchBox) {
@@ -41,7 +41,7 @@
 
             // Step 1: Click search box
             await new Promise((resolve, reject) => {
-                const searchBox = document.querySelector('.hidden.lg\\\\:flex.items-center.shadow-teal-input-shadow') ||
+                const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
                                 document.querySelector('div:has(> span.truncate)');
 
                 if (searchBox) {
@@ -58,7 +58,7 @@
                 const findDateButton = () => {
                     const dateButton = Array.from(document.querySelectorAll('button.shadow-teal-input-shadow')).find(btn => {
                         const hasCalendarIcon = btn.querySelector('g[id="Icons/calendar/primary-calendar"]');
-                        const hasDateText = btn.querySelector('span.ml-2')?.textContent.match(/[A-Za-z]+,\\s+[A-Za-z]+\\s+\\d+\\s+-\\s+[A-Za-z]+,\\s+[A-Za-z]+\\s+\\d+/);
+                        const hasDateText = btn.querySelector('span.ml-2')?.textContent.match(/[A-Za-z]+,\s+[A-Za-z]+\s+\d+\s+-\s+[A-Za-z]+,\s+[A-Za-z]+\s+\d+/);
                         return hasCalendarIcon && hasDateText;
                     });
 
