@@ -37,7 +37,7 @@
             });
 
             // Small delay after page is ready
-            await new Promise(resolve => setTimeout(resolve, 250));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 1: Click search box
             await new Promise((resolve, reject) => {
@@ -123,7 +123,7 @@
             });
 
             // Add a small delay before attempting date selection
-            await new Promise(resolve => setTimeout(resolve, 250));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 4: Select date range
             async function selectDateRange(startDate, endDate) {
@@ -199,7 +199,7 @@
                     startCell.click();
 
                     // Brief wait between clicks
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 500));
 
                     // Find and click end date
                     const endCell = findDateCell(endYear, endMonth, endDay);
@@ -222,7 +222,7 @@
             }
 
             // Add a small delay before attempting to select camping type
-            await new Promise(resolve => setTimeout(resolve, 250));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 5: Select "Camping" from dropdown
             await new Promise((resolve, reject) => {
@@ -276,7 +276,7 @@
             });
 
             // Add a small delay before looking for Show Results button
-            await new Promise(resolve => setTimeout(resolve, 250));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 6: Click Show Results button
             await new Promise((resolve, reject) => {
@@ -315,41 +315,41 @@
                 }
             });
 
-            // Add a small delay before looking for search results
-            await new Promise(resolve => setTimeout(resolve, 250));
+            // // Add a small delay before looking for search results
+            // await new Promise(resolve => setTimeout(resolve, 750));
 
-            // Step 7: Click first search result
-            await new Promise((resolve, reject) => {
-                const findSearchResult = () => {
-                    const searchResult = document.querySelector('a.flex.shadow-teal-input-shadow.rounded-lg.bg-white');
+            // // Step 7: Click first search result
+            // await new Promise((resolve, reject) => {
+            //     const findSearchResult = () => {
+            //         const searchResult = document.querySelector('a.flex.shadow-teal-input-shadow.rounded-lg.bg-white');
 
-                    if (searchResult) {
-                        searchResult.click();
-                        console.log('Clicked first search result');
-                        resolve();
-                        return true;
-                    }
-                    return false;
-                };
+            //         if (searchResult) {
+            //             searchResult.click();
+            //             console.log('Clicked first search result');
+            //             resolve();
+            //             return true;
+            //         }
+            //         return false;
+            //     };
 
-                if (!findSearchResult()) {
-                    const observer = new MutationObserver((mutations, obs) => {
-                        if (findSearchResult()) {
-                            obs.disconnect();
-                        }
-                    });
+            //     if (!findSearchResult()) {
+            //         const observer = new MutationObserver((mutations, obs) => {
+            //             if (findSearchResult()) {
+            //                 obs.disconnect();
+            //             }
+            //         });
 
-                    observer.observe(document.body, {
-                        childList: true,
-                        subtree: true
-                    });
+            //         observer.observe(document.body, {
+            //             childList: true,
+            //             subtree: true
+            //         });
 
-                    setTimeout(() => {
-                        observer.disconnect();
-                        reject(new Error('Search result not found after timeout'));
-                    }, 5000);
-                }
-            });
+            //         setTimeout(() => {
+            //             observer.disconnect();
+            //             reject(new Error('Search result not found after timeout'));
+            //         }, 5000);
+            //     }
+            // });
 
             return true;
         } catch (error) {
