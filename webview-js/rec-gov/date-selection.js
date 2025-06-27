@@ -25,6 +25,19 @@
             });
         }
 
+        // Helper function to click back button and return to campground detail page
+        async function clickBackButton() {
+            const backButton = document.querySelector('button[aria-label="Back"]') || 
+                              document.querySelector('.rec-icon-chevron-left').closest('button');
+            if (backButton) {
+                console.log('Clicking back button to return to campground detail page');
+                backButton.click();
+                return true;
+            }
+            console.log('Back button not found');
+            return false;
+        }
+
         try {
             // Find and click the enter dates button
             const calendarButton = await Promise.race([
@@ -136,12 +149,37 @@
             // Select start and end dates
             const start = new Date(startDate + 'T12:00:00Z');
             if (!await clickDate(start)) {
-                throw new Error('Could not select start date');
+                console.log('Could not select start date - dates may be disabled');
+                await clickBackButton();
+                return false;
             }
 
             const end = new Date(endDate + 'T12:00:00Z');
             if (!await clickDate(end)) {
-                throw new Error('Could not select end date');
+                console.log('Could not select end date - dates may be disabled');
+                await clickBackButton();
+                return false;
+            }
+
+            // EDGE CASE 1: Check if calendar is still visible after date selection
+            // Wait 250ms then check if back button is still present (indicating calendar is still open)
+            await new Promise(resolve => setTimeout(resolve, 250));
+            
+            const backButton = document.querySelector('button[aria-label="Back"]') || 
+                              document.querySelector('.rec-icon-chevron-left')?.closest('button');
+            
+            if (backButton) {
+                console.log('Calendar still visible after date selection - handling edge case 1');
+                
+                // Click the start date again to ensure it's selected
+                if (await clickDate(start)) {
+                    console.log('Re-clicked start date');
+                }
+                
+                // Click back button to return to campground detail page
+                await clickBackButton();
+            } else {
+                console.log('Calendar auto-dismissed successfully');
             }
 
             console.log('Date selection completed successfully');
@@ -149,6 +187,14 @@
 
         } catch (error) {
             console.error('Error selecting dates:', error);
+            
+            // EDGE CASE 2: If there was an error, try to click back button to return to detail page
+            try {
+                await clickBackButton();
+            } catch (backError) {
+                console.error('Error clicking back button:', backError);
+            }
+            
             return false;
         }
     }
