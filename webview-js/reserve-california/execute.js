@@ -1,26 +1,39 @@
-(async function() {
-                try {
-                    const startDate = '{{startDateString}}';
-                    const endDate = '{{endDateString}}';
+(function() {
+    try {
+        const startDate = '{{startDateString}}';
+        const endDate = '{{endDateString}}';
 
-                    console.log('JS Start Date:', startDate);
-                    console.log('JS End Date:', endDate);
+        console.log('JS Start Date:', startDate);
+        console.log('JS End Date:', endDate);
 
-                    const success = await selectCampgroundDates(startDate, endDate);
-                    debugger;
-                    window.webkit.messageHandlers.dateSelector.postMessage({
-                        success: success,
-                        message: success ? 'Dates selected successfully' : 'Failed to select dates',
-                        selectedDates: { start: startDate, end: endDate }
-                    });
-                } catch (error) {
-                    console.error('Error:', error);
-                    debugger;
-                    window.webkit.messageHandlers.dateSelector.postMessage({
-                        success: false,
-                        message: 'Error: ' + error.toString(),
-                        stack: error.stack,
-                        selectedDates: null
-                    });
-                }
-            })();
+        // Execute the date selection without returning the promise
+        selectCampgroundDates(startDate, endDate)
+            .then(success => {
+                window.webkit.messageHandlers.dateSelector.postMessage({
+                    success: success,
+                    message: success ? 'Dates selected successfully' : 'Failed to select dates',
+                    selectedDates: { start: startDate, end: endDate }
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.webkit.messageHandlers.dateSelector.postMessage({
+                    success: false,
+                    message: 'Error: ' + error.toString(),
+                    stack: error.stack,
+                    selectedDates: null
+                });
+            });
+    } catch (error) {
+        console.error('Error:', error);
+        window.webkit.messageHandlers.dateSelector.postMessage({
+            success: false,
+            message: 'Error: ' + error.toString(),
+            stack: error.stack,
+            selectedDates: null
+        });
+    }
+    
+    // Return undefined instead of the promise
+    return undefined;
+})();
