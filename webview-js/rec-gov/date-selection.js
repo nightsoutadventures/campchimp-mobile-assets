@@ -45,6 +45,7 @@
                     const button = Array.from(document.querySelectorAll('button')).find(btn =>
                         btn.querySelector('.rec-icon-calendar') &&
                         (btn.textContent.trim().includes('Enter Dates') ||
+                         btn.textContent.trim().includes('Set Dates') ||
                          /[A-Z][a-z]{2}\s+\d{1,2}-\d{1,2}/.test(btn.textContent.trim()))
                     );
                     if (button) resolve(button);
