@@ -1,4 +1,4 @@
-    async function selectCampingDates(startDate, endDate) {
+async function selectCampingDates(startDate, endDate) {
         // Helper function to wait for an element with timeout
         function waitForElement(selector, timeout = 2000) {
             return new Promise((resolve, reject) => {
@@ -27,8 +27,8 @@
 
         // Helper function to click back button and return to campground detail page
         async function clickBackButton() {
-            const backButton = document.querySelector('button[aria-label="Back"]') || 
-                              document.querySelector('.rec-icon-chevron-left').closest('button');
+            const backButton = document.querySelector('button[aria-label="Back"]') ||
+                document.querySelector('.rec-icon-chevron-left').closest('button');
             if (backButton) {
                 console.log('Clicking back button to return to campground detail page');
                 backButton.click();
@@ -39,24 +39,55 @@
         }
 
         try {
-            // Find and click the enter dates button
+            // Find and click the calendar button (super defensive approach)
             const calendarButton = await Promise.race([
                 new Promise(resolve => {
-                    const button = Array.from(document.querySelectorAll('button')).find(btn =>
-                        btn.querySelector('.rec-icon-calendar') &&
-                        (btn.textContent.trim().includes('Enter Dates') ||
-                         btn.textContent.trim().includes('Set Dates') ||
-                         /[A-Z][a-z]{2}\s+\d{1,2}-\d{1,2}/.test(btn.textContent.trim()))
-                    );
-                    if (button) resolve(button);
+                    // Primary: Look for any button containing the calendar icon
+                    let button = document.querySelector('button .rec-icon-calendar')?.closest('button') ||
+                        document.querySelector('button svg.rec-icon-calendar')?.closest('button');
+                    if (button) {
+                        console.log('Found calendar button by icon');
+                        resolve(button);
+                        return;
+                    }
+
+                    // Fallback 1: Look in overlay menu for icon
+                    button = document.querySelector('.overlay-menu button .rec-icon-calendar')?.closest('button');
+                    if (button) {
+                        console.log('Found calendar button by icon in overlay menu');
+                        resolve(button);
+                        return;
+                    }
+
+                    // Fallback 2: Look for specific text patterns
+                    button = Array.from(document.querySelectorAll('button')).find(btn => {
+                        const text = btn.textContent.trim();
+                        return text.includes('Set Date') ||
+                            text.includes('Set Dates') ||
+                            text.includes('Enter Date') ||
+                            text.includes('Enter Dates') ||
+                            // Date range patterns: "Aug 8 - Aug 11" or "Aug 26 - Aug 28" (case insensitive)
+                            /[A-Za-z]{3}\s+\d{1,2}\s+-\s+[A-Za-z]{3}\s+\d{1,2}/i.test(text) ||
+                            // Generic fallback: any button with "Date" or "Dates"
+                            text.includes('Date');
+                    });
+                    if (button) {
+                        console.log('Found calendar button by text pattern:', button.textContent.trim());
+                        resolve(button);
+                        return;
+                    }
+
+                    // Fallback 3: Look in overlay menu for text patterns
+                    button = Array.from(document.querySelectorAll('.overlay-menu button')).find(btn => {
+                        const text = btn.textContent.trim();
+                        return text.includes('Date');
+                    });
+                    if (button) {
+                        console.log('Found calendar button by text in overlay menu:', button.textContent.trim());
+                        resolve(button);
+                    }
                 }),
-                new Promise(resolve => {
-                    const button = Array.from(document.querySelectorAll('.overlay-menu button')).find(btn =>
-                        btn.querySelector('.rec-icon-calendar')
-                    );
-                    if (button) resolve(button);
-                }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Enter Dates button not found')), 2000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Calendar button not found')), 2000))
             ]);
 
             console.log(`Clicking calendar button: "${calendarButton.textContent.trim()}"`);
@@ -149,13 +180,44 @@
 
             // Select start and end dates
             const start = new Date(startDate + 'T12:00:00Z');
+            const end = new Date(endDate + 'T12:00:00Z');
+
+            // Click start date
             if (!await clickDate(start)) {
                 console.log('Could not select start date - dates may be disabled');
                 await clickBackButton();
                 return false;
             }
 
-            const end = new Date(endDate + 'T12:00:00Z');
+            // Check if end date is in a different month
+            const startMonth = start.getMonth();
+            const startYear = start.getFullYear();
+            const endMonth = end.getMonth();
+            const endYear = end.getFullYear();
+
+            const isMultiMonth = (startYear !== endYear) || (startMonth !== endMonth);
+
+            if (isMultiMonth) {
+                console.log('Multi-month date range detected - navigating to end month');
+
+                // Navigate to the end month
+                while (true) {
+                    const current = getCurrentMonthYear();
+                    const currentDate = new Date(`${current.month} 1, ${current.year} 12:00:00`);
+
+                    if (currentDate.getMonth() === endMonth &&
+                        currentDate.getFullYear() === endYear) {
+                        break;
+                    }
+
+                    const goForward = end > currentDate;
+                    await navigateMonth(goForward ? 'forward' : 'back');
+                }
+
+                console.log('Navigated to end month for multi-month selection');
+            }
+
+            // Click end date (either in same month or after navigation to end month)
             if (!await clickDate(end)) {
                 console.log('Could not select end date - dates may be disabled');
                 await clickBackButton();
@@ -165,18 +227,18 @@
             // EDGE CASE 1: Check if calendar is still visible after date selection
             // Wait 250ms then check if back button is still present (indicating calendar is still open)
             await new Promise(resolve => setTimeout(resolve, 250));
-            
-            const backButton = document.querySelector('button[aria-label="Back"]') || 
-                              document.querySelector('.rec-icon-chevron-left')?.closest('button');
-            
+
+            const backButton = document.querySelector('button[aria-label="Back"]') ||
+                document.querySelector('.rec-icon-chevron-left')?.closest('button');
+
             if (backButton) {
                 console.log('Calendar still visible after date selection - handling edge case 1');
-                
+
                 // Click the start date again to ensure it's selected
                 if (await clickDate(start)) {
                     console.log('Re-clicked start date');
                 }
-                
+
                 // Click back button to return to campground detail page
                 await clickBackButton();
             } else {
@@ -188,14 +250,14 @@
 
         } catch (error) {
             console.error('Error selecting dates:', error);
-            
+
             // EDGE CASE 2: If there was an error, try to click back button to return to detail page
             try {
                 await clickBackButton();
             } catch (backError) {
                 console.error('Error clicking back button:', backError);
             }
-            
+
             return false;
         }
-    }
+}
