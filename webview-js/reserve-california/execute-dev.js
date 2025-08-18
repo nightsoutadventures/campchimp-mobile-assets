@@ -13,6 +13,15 @@ console.log('🔧 Using Reserve California execute-dev.js (Development Build)');
         console.log('JS Equipment Type:', equipmentType);
         console.log('JS Equipment Length:', equipmentLength);
 
+        // TEMPORARY: Send equipment info to iOS if not empty
+        if (equipmentType && equipmentType.trim() !== '') {
+            window.webkit.messageHandlers.dateSelector.postMessage({
+                success: true,
+                message: `Equipment filters detected: Type=${equipmentType}, Length=${equipmentLength || 'N/A'}`,
+                equipmentInfo: { type: equipmentType, length: equipmentLength }
+            });
+        }
+
         // Execute the date selection without returning the promise
         selectCampgroundDates(startDate, endDate, equipmentType, equipmentLength)
             .then(success => {
