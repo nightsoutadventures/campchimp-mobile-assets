@@ -2,7 +2,14 @@
     console.log('🔧 Using Reserve California date-selection-dev.js (Development Build)');
     
     // New main entry point that implements hybrid approach
-    async function selectCampgroundDates(startDate, endDate) {
+    async function selectCampgroundDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
+        // TEMPORARY: Alert to show equipment filters when they're not empty
+        if (equipmentType && equipmentType.trim() !== '') {
+            const alertMessage = `Equipment Filters Detected!\n\nType: ${equipmentType}\nLength: ${equipmentLength || 'N/A'}`;
+            alert(alertMessage);
+            console.log('🔧 Equipment filters detected:', { equipmentType, equipmentLength });
+        }
+        
         try {
             console.log('Starting hybrid approach for Reserve California date selection');
             
