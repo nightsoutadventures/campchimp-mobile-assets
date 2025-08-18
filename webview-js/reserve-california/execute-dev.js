@@ -12,14 +12,19 @@ console.log('🔧 Using Reserve California execute-dev.js (Development Build)');
         console.log('JS End Date:', endDate);
         console.log('JS Equipment Type:', equipmentType);
         console.log('JS Equipment Length:', equipmentLength);
+        console.log('JS Equipment Type length:', equipmentType?.length);
+        console.log('JS Equipment Type trimmed:', equipmentType?.trim());
 
         // TEMPORARY: Send equipment info to iOS if not empty
         if (equipmentType && equipmentType.trim() !== '') {
+            console.log('JS: Equipment filters detected, sending message to iOS');
             window.webkit.messageHandlers.dateSelector.postMessage({
                 success: true,
                 message: `Equipment filters detected: Type=${equipmentType}, Length=${equipmentLength || 'N/A'}`,
                 equipmentInfo: { type: equipmentType, length: equipmentLength }
             });
+        } else {
+            console.log('JS: No equipment filters detected or equipmentType is empty');
         }
 
         // Execute the date selection without returning the promise
