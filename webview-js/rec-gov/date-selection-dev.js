@@ -107,7 +107,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                 }
                 
                 buttonToClick.click();
-                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between clicks
+                await new Promise(resolve => setTimeout(resolve, 25)); // Fast delay between clicks
                 
                 // Verify the value changed
                 const newValue = parseInt(field.value) || 0;
