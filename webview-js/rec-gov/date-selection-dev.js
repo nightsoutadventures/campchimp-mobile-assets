@@ -497,7 +497,69 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                 console.log('Filter/Sort button not found');
             }
         } else {
-            console.log('No equipment filters specified, skipping equipment filter selection');
+            console.log('No equipment filters specified, clearing any existing equipment filters');
+            
+            // Clear any existing equipment filter checkboxes
+            const existingTentCheckbox = document.querySelector('input[type="checkbox"]#tent:checked') ||
+                                       document.querySelector('input[type="checkbox"][value="tent"]:checked') ||
+                                       document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]:checked');
+            
+            const existingRmtCheckbox = document.querySelector('input[type="checkbox"]#rmt:checked') ||
+                                      document.querySelector('input[type="checkbox"][value="rmt"]:checked') ||
+                                      document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]:checked');
+            
+            if (existingTentCheckbox) {
+                console.log('Clearing existing tent checkbox');
+                existingTentCheckbox.click();
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            if (existingRmtCheckbox) {
+                console.log('Clearing existing RMT checkbox');
+                existingRmtCheckbox.click();
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Clear vehicle length if it's not 0
+            const vehicleLengthField = document.getElementById('vehicle-length');
+            if (vehicleLengthField) {
+                const currentLength = parseInt(vehicleLengthField.value) || 0;
+                if (currentLength > 0) {
+                    console.log(`Clearing vehicle length from ${currentLength} to 0`);
+                    
+                    // Find the decrement button and click it until we reach 0
+                    const decrementButton = document.querySelector('button[aria-label="Remove feet"]') ||
+                                          document.querySelector('button:has(.rec-icon-remove-circle-outline)') ||
+                                          Array.from(document.querySelectorAll('button')).find(btn => 
+                                              btn.querySelector('.rec-icon-remove-circle-outline')
+                                          );
+                    
+                    if (decrementButton) {
+                        for (let i = 0; i < currentLength; i++) {
+                            if (decrementButton.disabled) {
+                                console.log('Decrement button disabled, stopping');
+                                break;
+                            }
+                            decrementButton.click();
+                            await new Promise(resolve => setTimeout(resolve, 25));
+                            
+                            const newValue = parseInt(vehicleLengthField.value) || 0;
+                            if (newValue === 0) {
+                                console.log('Vehicle length cleared to 0');
+                                break;
+                            }
+                        }
+                    } else {
+                        console.log('Decrement button not found for clearing vehicle length');
+                    }
+                } else {
+                    console.log('Vehicle length already 0, no clearing needed');
+                }
+            } else {
+                console.log('Vehicle length field not found for clearing');
+            }
+            
+            console.log('Equipment filter clearing completed');
         }
 
                 // Step 8: Click View Results button (if equipment filters were applied)
