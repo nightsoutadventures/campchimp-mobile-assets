@@ -97,8 +97,16 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         
         if (!decrementButton) {
             console.log('Decrement button not found for clearing vehicle length');
+            console.log('🔍 Available buttons:', Array.from(document.querySelectorAll('button')).map(btn => ({
+                'aria-label': btn.getAttribute('aria-label'),
+                'class': btn.className,
+                'disabled': btn.disabled,
+                'text': btn.textContent?.trim()
+            })));
             return false;
         }
+        
+        console.log('✅ Decrement button found for clearing vehicle length');
         
         for (let i = 0; i < currentLength; i++) {
             if (decrementButton.disabled) {
