@@ -1,18 +1,30 @@
-    console.log('Using Reserve California date-selection.js');
-    
+console.log('Using Reserve California date-selection.js');
 
-    
-    // Helper function to select equipment filters
-    async function selectEquipmentFilters(equipmentType, equipmentLength) {
+// Helper function to safely execute async operations with error reporting
+async function safeExecute(operation, context = {}) {
+    try {
+        return await operation();
+    } catch (error) {
+        console.error('Error in safeExecute:', error);
+        if (window.reportJSError) {
+            window.reportJSError(error, context);
+        }
+        throw error;
+    }
+}
+
+// Helper function to select equipment filters
+async function selectEquipmentFilters(equipmentType, equipmentLength) {
+    return safeExecute(async () => {
         try {
             console.log('Starting equipment filter selection:', { equipmentType, equipmentLength });
-            
+
             // If no equipment type specified, skip equipment filter selection
             if (!equipmentType || equipmentType.trim() === '') {
                 console.log('No equipment type specified, skipping equipment filter selection');
                 return true;
             }
-            
+
             // Step 1: Click "Select Camping Equipment" dropdown
             await new Promise((resolve, reject) => {
                 const findEquipmentDropdown = () => {
@@ -225,23 +237,26 @@
             // Fail gracefully - log error but continue
             return false;
         }
-    }
+    }, { operation: 'selectEquipmentFilters', equipmentType, equipmentLength });
+}
     
     // New main entry point that implements hybrid approach
     async function selectCampgroundDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
-        if (equipmentType && equipmentType.trim() !== '') {
-            console.log('Equipment filters detected:', { equipmentType, equipmentLength });
-        }
-        
-        try {
-            console.log('Starting Reserve California date selection (full JavaScript approach)');
+        return safeExecute(async () => {
+            if (equipmentType && equipmentType.trim() !== '') {
+                console.log('Equipment filters detected:', { equipmentType, equipmentLength });
+            }
             
-            // Always use full JavaScript approach since Reserve California URL parameters are unreliable
-            return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType, equipmentLength);
-        } catch (error) {
-            console.error('Error in selectCampgroundDates (hybrid):', error);
-            return false;
-        }
+            try {
+                console.log('Starting Reserve California date selection (full JavaScript approach)');
+                
+                // Always use full JavaScript approach since Reserve California URL parameters are unreliable
+                return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType, equipmentLength);
+            } catch (error) {
+                console.error('Error in selectCampgroundDates (hybrid):', error);
+                return false;
+            }
+        }, { operation: 'selectCampgroundDates', startDate, endDate, equipmentType, equipmentLength });
     }
 
 
