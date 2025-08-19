@@ -240,7 +240,11 @@
             
             // Check if URL already has date parameters (query string approach worked)
             const currentURL = window.location.href;
+            console.log('DEBUG: Checking URL for date parameters:', currentURL);
+            console.log('DEBUG: URL includes "date=":', currentURL.includes('date='));
+            console.log('DEBUG: URL includes "night=":', currentURL.includes('night='));
             const hasDateParams = currentURL.includes('date=') && currentURL.includes('night=');
+            console.log('DEBUG: hasDateParams result:', hasDateParams);
             
             if (hasDateParams) {
                 console.log('URL has date parameters, using query string approach + site type selection');
