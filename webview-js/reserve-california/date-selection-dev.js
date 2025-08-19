@@ -20,9 +20,9 @@
             
             console.log('Current search box date text:', dateText);
             
-            // Parse the expected dates
-            const startDateObj = new Date(startDate);
-            const endDateObj = new Date(endDate);
+            // Parse the expected dates (use local timezone like iOS does)
+            const startDateObj = new Date(startDate + 'T12:00:00.000Z');
+            const endDateObj = new Date(endDate + 'T12:00:00.000Z');
             
             // Format expected dates to match Reserve California's format
             const startDay = startDateObj.toLocaleDateString('en-US', { weekday: 'short' });
