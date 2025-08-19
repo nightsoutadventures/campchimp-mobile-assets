@@ -243,6 +243,11 @@ async function selectEquipmentFilters(equipmentType, equipmentLength) {
     // New main entry point that implements hybrid approach
     async function selectCampgroundDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
         return safeExecute(async () => {
+            // TEMPORARY: Test error handling - this will trigger an error
+            console.log('🧪 TESTING ERROR HANDLING - About to trigger a deliberate error...');
+            const nonExistentElement = document.querySelector('#this-element-does-not-exist');
+            nonExistentElement.click(); // This will throw "Cannot read property 'click' of null"
+            
             if (equipmentType && equipmentType.trim() !== '') {
                 console.log('Equipment filters detected:', { equipmentType, equipmentLength });
             }
