@@ -1,5 +1,4 @@
-// DEVELOPMENT VERSION - This file is used for Xcode debug builds only
-console.log('🔧 Using Rec.gov date-selection-dev.js (Development Build)');
+console.log('Using Rec.gov date-selection.js');
 
 async function selectCampingDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
 

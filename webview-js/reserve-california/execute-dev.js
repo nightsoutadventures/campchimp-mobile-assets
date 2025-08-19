@@ -1,5 +1,4 @@
-// DEVELOPMENT VERSION - This file is used for Xcode debug builds only
-console.log('🔧 Using Reserve California execute-dev.js (Development Build)');
+console.log('Using Reserve California execute.js');
 
 (function() {
     try {
@@ -15,11 +14,8 @@ console.log('🔧 Using Reserve California execute-dev.js (Development Build)');
         console.log('JS Equipment Type length:', equipmentType?.length);
         console.log('JS Equipment Type trimmed:', equipmentType?.trim());
 
-        // TEMPORARY: Log equipment info to console if not empty
         if (equipmentType && equipmentType.trim() !== '') {
             console.log('JS: Equipment filters detected:', { equipmentType, equipmentLength });
-        } else {
-            console.log('JS: No equipment filters detected or equipmentType is empty');
         }
 
         // Execute the date selection without returning the promise

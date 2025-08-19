@@ -1,5 +1,4 @@
-    // DEVELOPMENT VERSION - This file is used for Xcode debug builds only
-    console.log('🔧 Using Reserve California date-selection-dev.js (Development Build)');
+    console.log('Using Reserve California date-selection.js');
     
 
     
@@ -230,11 +229,8 @@
     
     // New main entry point that implements hybrid approach
     async function selectCampgroundDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
-        // TEMPORARY: Alert to show equipment filters when they're not empty
         if (equipmentType && equipmentType.trim() !== '') {
-            const alertMessage = `Equipment Filters Detected!\n\nType: ${equipmentType}\nLength: ${equipmentLength || 'N/A'}`;
-            alert(alertMessage);
-            console.log('🔧 Equipment filters detected:', { equipmentType, equipmentLength });
+            console.log('Equipment filters detected:', { equipmentType, equipmentLength });
         }
         
         try {

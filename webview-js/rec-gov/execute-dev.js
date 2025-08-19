@@ -12,12 +12,9 @@
     console.log('JS Equipment Type length:', equipmentType?.length);
     console.log('JS Equipment Type trimmed:', equipmentType?.trim());
 
-    // TEMPORARY: Log equipment info to console if not empty
-    if (equipmentType && equipmentType.trim() !== '') {
-        console.log('JS: Equipment filters detected:', { equipmentType, equipmentLength });
-    } else {
-        console.log('JS: No equipment filters detected or equipmentType is empty');
-    }
+            if (equipmentType && equipmentType.trim() !== '') {
+            console.log('JS: Equipment filters detected:', { equipmentType, equipmentLength });
+        }
 
     // Execute the date selection without returning the promise
     selectCampingDates('{{startDateString}}', '{{endDateString}}', equipmentType, equipmentLength)
