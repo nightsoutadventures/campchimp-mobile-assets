@@ -284,7 +284,46 @@
         try {
             console.log('Starting hybrid approach for Reserve California date selection');
             
-            // Check if correct date range is already selected (URL parameters worked)
+            // Wait for page to be ready first, then check date range
+            await new Promise((resolve, reject) => {
+                const waitForInitialElement = () => {
+                    const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
+                                    document.querySelector('div:has(> span.truncate)');
+
+                    if (searchBox) {
+                        console.log('Page is ready for date range detection');
+                        resolve();
+                        return true;
+                    }
+                    return false;
+                };
+
+                // Try immediately
+                if (!waitForInitialElement()) {
+                    // If not found, set up a mutation observer
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (waitForInitialElement()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    // Set timeout
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Page not ready for date range detection after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Small delay after page is ready
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Now check if correct date range is already selected (URL parameters worked)
             const hasCorrectDates = isCorrectDateRangeSelected(startDate, endDate);
             
             if (hasCorrectDates) {
