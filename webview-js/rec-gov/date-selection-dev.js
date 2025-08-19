@@ -48,6 +48,31 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         return false;
     }
 
+    // Helper function to set vehicle length
+    function setVehicleLength(value) {
+        const field = document.getElementById('vehicle-length');
+        
+        if (!field) {
+            console.error('Vehicle length field not found');
+            return false;
+        }
+        
+        // Focus on the field (simulates clicking)
+        field.focus();
+        
+        // Clear existing value and set new value
+        field.value = '';
+        field.value = value;
+        
+        // Trigger events that frameworks might be listening for
+        field.dispatchEvent(new Event('focus', { bubbles: true }));
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+        field.dispatchEvent(new Event('blur', { bubbles: true }));
+        
+        return true;
+    }
+
     try {
         // Find and click the calendar button (super defensive approach)
         const calendarButton = await Promise.race([
@@ -305,21 +330,14 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                         // Small delay after checkbox click
                         await new Promise(resolve => setTimeout(resolve, 250));
 
-                        // Set vehicle length if specified
+                                                // Set vehicle length if specified
                         if (equipmentLength && equipmentLength.trim() !== '') {
                             const lengthValue = parseInt(equipmentLength);
                             if (!isNaN(lengthValue)) {
-                                const vehicleLengthInput = document.querySelector('input[type="text"]#vehicle-length') ||
-                                    document.querySelector('input[type="text"][name="numberField"]') ||
-                                    document.querySelector('input.with-unit-after[pattern="\\d*"]');
-
-                                if (vehicleLengthInput) {
-                                    console.log(`Setting vehicle length to: ${lengthValue}`);
-                                    vehicleLengthInput.value = lengthValue.toString();
-                                    vehicleLengthInput.dispatchEvent(new Event('input', { bubbles: true }));
-                                    vehicleLengthInput.dispatchEvent(new Event('change', { bubbles: true }));
-                                } else {
-                                    console.log('Vehicle length input not found');
+                                console.log(`Setting vehicle length to: ${lengthValue}`);
+                                const success = setVehicleLength(lengthValue.toString());
+                                if (!success) {
+                                    console.log('Failed to set vehicle length');
                                 }
                             }
                         }
