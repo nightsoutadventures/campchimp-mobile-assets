@@ -237,6 +237,7 @@
         
         try {
             console.log('Starting hybrid approach for Reserve California date selection');
+            console.log('🔧 DEBUG TEST - This should show up in logs');
             
             // Check if URL already has date parameters (query string approach worked)
             const currentURL = window.location.href;
