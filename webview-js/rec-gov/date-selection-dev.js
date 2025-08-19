@@ -256,6 +256,104 @@
         }
 
         console.log('Date selection completed successfully');
+        
+        // Step 7: Handle equipment filters if specified
+        if (equipmentType && equipmentType.trim() !== '') {
+            console.log('Equipment filters specified, applying equipment filters');
+            
+            // Small delay before equipment filter selection
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Click the Filter/Sort button
+            const filterButton = document.querySelector('button.filters-button[aria-label="Filter / Sort"]') ||
+                                document.querySelector('button.sarsa-button-tertiary[aria-label="Filter / Sort"]') ||
+                                document.querySelector('button:has(.rec-icon-filter-list)') ||
+                                Array.from(document.querySelectorAll('button')).find(btn => 
+                                    btn.textContent.includes('Filter') || btn.textContent.includes('Sort')
+                                );
+            
+            if (filterButton) {
+                console.log('Clicking Filter/Sort button');
+                filterButton.click();
+                
+                // Wait for filter panel to open
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Handle different equipment types
+                if (equipmentType.toLowerCase() === 'tent') {
+                    // Click tent checkbox
+                    const tentCheckbox = document.querySelector('input[type="checkbox"]#tent') ||
+                                       document.querySelector('input[type="checkbox"][value="tent"]') ||
+                                       document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
+                    
+                    if (tentCheckbox) {
+                        console.log('Clicking tent checkbox');
+                        tentCheckbox.click();
+                    } else {
+                        console.log('Tent checkbox not found');
+                    }
+                } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
+                    // Click RMT checkbox
+                    const rmtCheckbox = document.querySelector('input[type="checkbox"]#rmt') ||
+                                      document.querySelector('input[type="checkbox"][value="rmt"]') ||
+                                      document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
+                    
+                    if (rmtCheckbox) {
+                        console.log('Clicking RMT checkbox');
+                        rmtCheckbox.click();
+                        
+                        // Small delay after checkbox click
+                        await new Promise(resolve => setTimeout(resolve, 250));
+                        
+                        // Set vehicle length if specified
+                        if (equipmentLength && equipmentLength.trim() !== '') {
+                            const lengthValue = parseInt(equipmentLength);
+                            if (!isNaN(lengthValue)) {
+                                const vehicleLengthInput = document.querySelector('input[type="text"]#vehicle-length') ||
+                                                         document.querySelector('input[type="text"][name="numberField"]') ||
+                                                         document.querySelector('input.with-unit-after[pattern="\\d*"]');
+                                
+                                if (vehicleLengthInput) {
+                                    console.log(`Setting vehicle length to: ${lengthValue}`);
+                                    vehicleLengthInput.value = lengthValue.toString();
+                                    vehicleLengthInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                    vehicleLengthInput.dispatchEvent(new Event('change', { bubbles: true }));
+                                } else {
+                                    console.log('Vehicle length input not found');
+                                }
+                            }
+                        }
+                    } else {
+                        console.log('RMT checkbox not found');
+                    }
+                }
+                
+                // Small delay after equipment filter selection
+                await new Promise(resolve => setTimeout(resolve, 250));
+            } else {
+                console.log('Filter/Sort button not found');
+            }
+        } else {
+            console.log('No equipment filters specified, skipping equipment filter selection');
+        }
+        
+        // Step 8: Click View Results button (if equipment filters were applied)
+        if (equipmentType && equipmentType.trim() !== '') {
+            const viewResultsButton = document.querySelector('button.sarsa-button-primary:has(.sarsa-button-content:contains("View"))') ||
+                                    document.querySelector('button.sarsa-button-primary:has(.sarsa-button-content:contains("Results"))') ||
+                                    Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
+                                        const text = btn.textContent.toLowerCase();
+                                        return text.includes('view') && text.includes('results');
+                                    });
+            
+            if (viewResultsButton) {
+                console.log('Clicking View Results button');
+                viewResultsButton.click();
+            } else {
+                console.log('View Results button not found');
+            }
+        }
+        
         return true;
 
     } catch (error) {

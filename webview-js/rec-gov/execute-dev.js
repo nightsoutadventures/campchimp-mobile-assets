@@ -12,14 +12,9 @@
     console.log('JS Equipment Type length:', equipmentType?.length);
     console.log('JS Equipment Type trimmed:', equipmentType?.trim());
 
-    // TEMPORARY: Send equipment info to iOS if not empty
+    // TEMPORARY: Log equipment info to console if not empty
     if (equipmentType && equipmentType.trim() !== '') {
-        console.log('JS: Equipment filters detected, sending message to iOS');
-        window.webkit.messageHandlers.dateSelector.postMessage({
-            success: true,
-            message: `Equipment filters detected: Type=${equipmentType}, Length=${equipmentLength || 'N/A'}`,
-            equipmentInfo: { type: equipmentType, length: equipmentLength }
-        });
+        console.log('JS: Equipment filters detected:', { equipmentType, equipmentLength });
     } else {
         console.log('JS: No equipment filters detected or equipmentType is empty');
     }
