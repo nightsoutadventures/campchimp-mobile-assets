@@ -610,7 +610,7 @@
                         setTimeout(() => {
                             console.log('Clicked Show Results button');
                             resolve();
-                        }, 1000);
+                        }, 400);
                         return true;
                     }
                     return false;
