@@ -1,6 +1,52 @@
     // DEVELOPMENT VERSION - This file is used for Xcode debug builds only
     console.log('🔧 Using Reserve California date-selection-dev.js (Development Build)');
     
+    // Helper function to detect if correct date range is already selected
+    function isCorrectDateRangeSelected(startDate, endDate) {
+        try {
+            const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
+                            document.querySelector('div:has(> span.truncate)');
+            
+            if (!searchBox) {
+                console.log('Search box not found for date range detection');
+                return false;
+            }
+            
+            const dateText = searchBox.querySelector('span.truncate')?.textContent;
+            if (!dateText) {
+                console.log('Date text not found in search box');
+                return false;
+            }
+            
+            console.log('Current search box date text:', dateText);
+            
+            // Parse the expected dates
+            const startDateObj = new Date(startDate);
+            const endDateObj = new Date(endDate);
+            
+            // Format expected dates to match Reserve California's format
+            const startDay = startDateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const startMonth = startDateObj.toLocaleDateString('en-US', { month: 'short' });
+            const startDayNum = startDateObj.getDate();
+            
+            const endDay = endDateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const endMonth = endDateObj.toLocaleDateString('en-US', { month: 'short' });
+            const endDayNum = endDateObj.getDate();
+            
+            const expectedDateRange = `${startDay}, ${startMonth} ${startDayNum} - ${endDay}, ${endMonth} ${endDayNum}`;
+            console.log('Expected date range:', expectedDateRange);
+            
+            // Check if the current text contains our expected date range
+            const isCorrect = dateText.includes(expectedDateRange);
+            console.log('Date range detection result:', isCorrect);
+            
+            return isCorrect;
+        } catch (error) {
+            console.error('Error detecting date range:', error);
+            return false;
+        }
+    }
+    
     // Helper function to select equipment filters
     async function selectEquipmentFilters(equipmentType, equipmentLength) {
         try {
@@ -237,23 +283,17 @@
         
         try {
             console.log('Starting hybrid approach for Reserve California date selection');
-            console.log('🔧 DEBUG TEST - This should show up in logs');
             
-            // Check if URL already has date parameters (query string approach worked)
-            const currentURL = window.location.href;
-            console.log('DEBUG: Checking URL for date parameters:', currentURL);
-            console.log('DEBUG: URL includes "date=":', currentURL.includes('date='));
-            console.log('DEBUG: URL includes "night=":', currentURL.includes('night='));
-            const hasDateParams = currentURL.includes('date=') && currentURL.includes('night=');
-            console.log('DEBUG: hasDateParams result:', hasDateParams);
+            // Check if correct date range is already selected (URL parameters worked)
+            const hasCorrectDates = isCorrectDateRangeSelected(startDate, endDate);
             
-            if (hasDateParams) {
-                console.log('URL has date parameters, using query string approach + site type selection');
-                // Query string approach worked, just need to select site type
+            if (hasCorrectDates) {
+                console.log('Correct date range already selected, using site type selection only');
+                // URL parameters worked, just need to select site type
                 return await selectSiteTypeOnly(equipmentType, equipmentLength);
             } else {
-                console.log('URL does not have date parameters, using full JavaScript fallback');
-                // Query string approach didn't work, use full JavaScript fallback
+                console.log('Correct date range not selected, using full JavaScript approach');
+                // URL parameters didn't work, use full JavaScript approach
                 return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType, equipmentLength);
             }
         } catch (error) {
