@@ -623,6 +623,10 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                         console.log('No equipment filters specified, filters already cleared at the beginning');
                     }
 
+        // Final step: Scroll to top of page for better user experience
+        console.log('Scrolling to top of page');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         return true;
 
     } catch (error) {
