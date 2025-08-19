@@ -2,12 +2,6 @@
 console.log('🔧 Using Rec.gov date-selection-dev.js (Development Build)');
 
 async function selectCampingDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
-    // TEMPORARY: Alert to show equipment filters when they're not empty
-    if (equipmentType && equipmentType.trim() !== '') {
-        const alertMessage = `Equipment Filters Detected!\n\nType: ${equipmentType}\nLength: ${equipmentLength || 'N/A'}`;
-        alert(alertMessage);
-        console.log('🔧 Equipment filters detected:', { equipmentType, equipmentLength });
-    }
 
     // Helper function to wait for an element with timeout
     function waitForElement(selector, timeout = 2000) {
