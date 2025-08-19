@@ -176,19 +176,23 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             console.log(`Field attribute value after setting: "${field.getAttribute('value')}"`);
             
             // Try to trigger React/Vue/Angular change detection
+            console.log('📡 Dispatching input event...');
             field.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            console.log('📡 Dispatching change event...');
             field.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
             await new Promise(resolve => setTimeout(resolve, 50));
             
             // Additional events that might be needed
+            console.log('📡 Dispatching additional events (keyup, keydown, blur, focus)...');
             ['keyup', 'keydown', 'blur', 'focus'].forEach(eventType => {
                 field.dispatchEvent(new Event(eventType, { bubbles: true, cancelable: true }));
             });
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            console.log('📱 Dispatching touchend event...');
             field.dispatchEvent(new TouchEvent('touchend', {
                 bubbles: true,
                 cancelable: true
