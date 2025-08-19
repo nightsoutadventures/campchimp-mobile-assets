@@ -419,78 +419,40 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
 
                             console.log('Date selection completed successfully');
                     
-                    // Step 7: Always clear all filters first to start with a clean state
-                    console.log('Clearing all existing filters to start with a clean state');
-                    
-                    // Click the Filter / Sort button to open the filter panel
-                    const filterButton = document.querySelector('button[data-component="Button"].filters-button') ||
-                                       document.querySelector('button[aria-label="Filter / Sort"]') ||
-                                       Array.from(document.querySelectorAll('button')).find(btn => {
-                                           const text = btn.textContent.toLowerCase();
-                                           return text.includes('filter') && text.includes('sort');
-                                       });
-                    
-                    if (filterButton) {
-                        console.log('Clicking Filter / Sort button to open filter panel');
-                        filterButton.click();
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        
-                        // Look for the "Clear All Filters" button
-                        const clearAllButton = Array.from(document.querySelectorAll('button')).find(btn => {
-                            const text = btn.textContent.toLowerCase();
-                            return text.includes('clear') && text.includes('filter');
-                        });
-                        
-                        if (clearAllButton) {
-                            console.log('Clicking Clear All Filters button');
-                            clearAllButton.click();
-                            await new Promise(resolve => setTimeout(resolve, 250));
-                        } else {
-                            console.log('Clear All Filters button not found - no existing filters to clear');
-                        }
-                        
-                        // Always click View Results button to apply any changes and close filter panel
-                        const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
-                            const text = btn.textContent.toLowerCase();
-                            return text.includes('view') && text.includes('results');
-                        }) ||
-                        Array.from(document.querySelectorAll('button')).find(btn => {
-                            const text = btn.textContent.toLowerCase();
-                            return text.includes('view') && text.includes('results');
-                        });
-                        
-                        if (viewResultsButton) {
-                            console.log('Clicking View Results button after filter operations');
-                            viewResultsButton.click();
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                        } else {
-                            console.log('View Results button not found - filter panel may be stuck open');
-                        }
-                    } else {
-                        console.log('Filter / Sort button not found');
-                    }
-                    
-                    // Step 8: Handle equipment filters if specified
+                    // Step 7: Handle filter clearing and equipment filters based on whether we have filters to apply
                     if (equipmentType && equipmentType.trim() !== '') {
-                        console.log('Equipment filters specified, applying equipment filters');
-
-                        // Small delay before equipment filter selection
-                        await new Promise(resolve => setTimeout(resolve, 250));
-
-                        // Click the Filter/Sort button
-                        const filterButton = document.querySelector('button.filters-button[aria-label="Filter / Sort"]') ||
-                            document.querySelector('button.sarsa-button-tertiary[aria-label="Filter / Sort"]') ||
-                            document.querySelector('button:has(.rec-icon-filter-list)') ||
-                            Array.from(document.querySelectorAll('button')).find(btn =>
-                                btn.textContent.includes('Filter') || btn.textContent.includes('Sort')
-                            );
-
+                        // We have equipment filters to apply - open filter panel once and handle everything
+                        console.log('Equipment filters specified, opening filter panel to clear existing and set new filters');
+                        
+                        // Click the Filter / Sort button to open the filter panel
+                        const filterButton = document.querySelector('button[data-component="Button"].filters-button') ||
+                                           document.querySelector('button[aria-label="Filter / Sort"]') ||
+                                           Array.from(document.querySelectorAll('button')).find(btn => {
+                                               const text = btn.textContent.toLowerCase();
+                                               return text.includes('filter') && text.includes('sort');
+                                           });
+                        
                         if (filterButton) {
-                            console.log('Clicking Filter/Sort button');
+                            console.log('Clicking Filter / Sort button to open filter panel');
                             filterButton.click();
-
-                            // Wait for filter panel to open
                             await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            // Step 7a: Clear existing filters first
+                            const clearAllButton = Array.from(document.querySelectorAll('button')).find(btn => {
+                                const text = btn.textContent.toLowerCase();
+                                return text.includes('clear') && text.includes('filter');
+                            });
+                            
+                            if (clearAllButton) {
+                                console.log('Clicking Clear All Filters button');
+                                clearAllButton.click();
+                                await new Promise(resolve => setTimeout(resolve, 250));
+                            } else {
+                                console.log('Clear All Filters button not found - no existing filters to clear');
+                            }
+                            
+                            // Step 7b: Apply new equipment filters
+                            console.log('Applying new equipment filters');
                             
                             // Add bottom padding to ensure filter buttons are visible above WebView footer
                             console.log('📱 Adding bottom padding to filter container for WebView compatibility');
@@ -600,7 +562,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                             // Small delay after equipment filter selection
                             await new Promise(resolve => setTimeout(resolve, 250));
                             
-                            // GRACEFUL FAILURE: Always try to close filter panel and apply results
+                            // Step 7c: Apply filters and close panel
                             const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
                                 const text = btn.textContent.toLowerCase();
                                 return text.includes('view') && text.includes('results');
@@ -620,7 +582,56 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                             console.log('Filter/Sort button not found');
                         }
                     } else {
-                        console.log('No equipment filters specified, filters already cleared at the beginning');
+                        // No equipment filters - just clear any existing filters
+                        console.log('No equipment filters specified, clearing any existing filters');
+                        
+                        // Click the Filter / Sort button to open the filter panel
+                        const filterButton = document.querySelector('button[data-component="Button"].filters-button') ||
+                                           document.querySelector('button[aria-label="Filter / Sort"]') ||
+                                           Array.from(document.querySelectorAll('button')).find(btn => {
+                                               const text = btn.textContent.toLowerCase();
+                                               return text.includes('filter') && text.includes('sort');
+                                           });
+                        
+                        if (filterButton) {
+                            console.log('Clicking Filter / Sort button to open filter panel');
+                            filterButton.click();
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            // Look for the "Clear All Filters" button
+                            const clearAllButton = Array.from(document.querySelectorAll('button')).find(btn => {
+                                const text = btn.textContent.toLowerCase();
+                                return text.includes('clear') && text.includes('filter');
+                            });
+                            
+                            if (clearAllButton) {
+                                console.log('Clicking Clear All Filters button');
+                                clearAllButton.click();
+                                await new Promise(resolve => setTimeout(resolve, 250));
+                            } else {
+                                console.log('Clear All Filters button not found - no existing filters to clear');
+                            }
+                            
+                            // Click View Results button to apply any changes and close filter panel
+                            const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
+                                const text = btn.textContent.toLowerCase();
+                                return text.includes('view') && text.includes('results');
+                            }) ||
+                            Array.from(document.querySelectorAll('button')).find(btn => {
+                                const text = btn.textContent.toLowerCase();
+                                return text.includes('view') && text.includes('results');
+                            });
+                            
+                            if (viewResultsButton) {
+                                console.log('Clicking View Results button after clearing filters');
+                                viewResultsButton.click();
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                            } else {
+                                console.log('View Results button not found - filter panel may be stuck open');
+                            }
+                        } else {
+                            console.log('Filter / Sort button not found');
+                        }
                     }
 
         // Final step: Scroll to top of page for better user experience
