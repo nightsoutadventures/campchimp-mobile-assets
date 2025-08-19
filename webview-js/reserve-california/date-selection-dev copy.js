@@ -1,7 +1,60 @@
     // DEVELOPMENT VERSION - This file is used for Xcode debug builds only
     console.log('🔧 Using Reserve California date-selection-dev.js (Development Build)');
     
-
+    // Helper function to detect if correct date range is already selected
+    function isCorrectDateRangeSelected(startDate, endDate) {
+        try {
+            console.log('DEBUG: Attempting to find search box for date range detection');
+            
+            // Try multiple selectors to find the search box
+            const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
+                            document.querySelector('div:has(> span.truncate)') ||
+                            document.querySelector('[class*="shadow-teal-input-shadow"]') ||
+                            document.querySelector('div[class*="flex items-center"]');
+            
+            if (!searchBox) {
+                console.log('Search box not found for date range detection');
+                console.log('DEBUG: Available elements with similar classes:');
+                document.querySelectorAll('[class*="shadow"]').forEach((el, i) => {
+                    console.log(`DEBUG: Element ${i}:`, el.className);
+                });
+                return false;
+            }
+            
+            const dateText = searchBox.querySelector('span.truncate')?.textContent;
+            if (!dateText) {
+                console.log('Date text not found in search box');
+                return false;
+            }
+            
+            console.log('Current search box date text:', dateText);
+            
+            // Parse the expected dates (use local timezone like iOS does)
+            const startDateObj = new Date(startDate + 'T12:00:00.000Z');
+            const endDateObj = new Date(endDate + 'T12:00:00.000Z');
+            
+            // Format expected dates to match Reserve California's format
+            const startDay = startDateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const startMonth = startDateObj.toLocaleDateString('en-US', { month: 'short' });
+            const startDayNum = startDateObj.getDate();
+            
+            const endDay = endDateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const endMonth = endDateObj.toLocaleDateString('en-US', { month: 'short' });
+            const endDayNum = endDateObj.getDate();
+            
+            const expectedDateRange = `${startDay}, ${startMonth} ${startDayNum} - ${endDay}, ${endMonth} ${endDayNum}`;
+            console.log('Expected date range:', expectedDateRange);
+            
+            // Check if the current text contains our expected date range
+            const isCorrect = dateText.includes(expectedDateRange);
+            console.log('Date range detection result:', isCorrect);
+            
+            return isCorrect;
+        } catch (error) {
+            console.error('Error detecting date range:', error);
+            return false;
+        }
+    }
     
     // Helper function to select equipment filters
     async function selectEquipmentFilters(equipmentType, equipmentLength) {
@@ -47,7 +100,7 @@
             });
 
             // Small delay for dropdown to open
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 2: Select equipment type
             await new Promise((resolve, reject) => {
@@ -108,7 +161,7 @@
             });
 
             // Small delay after equipment type selection
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 3: If RV or Trailer, select equipment length
             if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
@@ -178,7 +231,7 @@
                     });
 
                     // Small delay for dropdown to open
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 500));
 
                     // Select the length option
                     await new Promise((resolve, reject) => {
@@ -213,7 +266,7 @@
                     });
 
                     // Small delay after length selection
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
                     console.log('Length dropdown option not found for length:', equipmentLength, 'continuing without length filter');
                 }
@@ -238,17 +291,296 @@
         }
         
         try {
-            console.log('Starting Reserve California date selection (full JavaScript approach)');
+            console.log('Starting hybrid approach for Reserve California date selection');
             
-            // Always use full JavaScript approach since Reserve California URL parameters are unreliable
-            return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType, equipmentLength);
+            // Wait for page to be ready first, then check date range
+            await new Promise((resolve, reject) => {
+                const waitForInitialElement = () => {
+                    const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
+                                    document.querySelector('div:has(> span.truncate)');
+
+                    if (searchBox) {
+                        console.log('Page is ready for date range detection');
+                        resolve();
+                        return true;
+                    }
+                    return false;
+                };
+
+                // Try immediately
+                if (!waitForInitialElement()) {
+                    // If not found, set up a mutation observer
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (waitForInitialElement()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    // Set timeout
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Page not ready for date range detection after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Small delay after page is ready
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Try multiple times to find the search box with increasing delays
+            let hasCorrectDates = false;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                console.log(`DEBUG: Date range detection attempt ${attempt}/3`);
+                hasCorrectDates = isCorrectDateRangeSelected(startDate, endDate);
+                if (hasCorrectDates) {
+                    console.log(`DEBUG: Date range detection successful on attempt ${attempt}`);
+                    break;
+                }
+                if (attempt < 3) {
+                    console.log(`DEBUG: Waiting 1 second before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            
+            if (hasCorrectDates) {
+                console.log('Correct date range already selected, using site type selection only');
+                // URL parameters worked, just need to select site type
+                return await selectSiteTypeOnly(equipmentType, equipmentLength);
+            } else {
+                console.log('Correct date range not selected, using full JavaScript approach');
+                // URL parameters didn't work, use full JavaScript approach
+                return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType, equipmentLength);
+            }
         } catch (error) {
             console.error('Error in selectCampgroundDates (hybrid):', error);
             return false;
         }
     }
 
+    // New function for site type selection only (when query strings worked for dates)
+    async function selectSiteTypeOnly(equipmentType, equipmentLength) {
+        try {
+            console.log('Starting site type selection only');
+            
+            // Initialize the same way by waiting for the page to be ready
+            await new Promise((resolve, reject) => {
+                const waitForInitialElement = () => {
+                    const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
+                                    document.querySelector('div:has(> span.truncate)');
 
+                    if (searchBox) {
+                        console.log('Page is ready');
+                        resolve();
+                        return true;
+                    }
+                    return false;
+                };
+
+                // Try immediately
+                if (!waitForInitialElement()) {
+                    // If not found, set up a mutation observer
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (waitForInitialElement()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    // Set timeout
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Page not ready after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Small delay after page is ready
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 1: Click search box
+            await new Promise((resolve, reject) => {
+                const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
+                                document.querySelector('div:has(> span.truncate)');
+
+                if (searchBox) {
+                    searchBox.click();
+                    console.log('Clicked search box');
+                    resolve();
+                } else {
+                    reject(new Error('Search box not found'));
+                }
+            });
+
+            // Step 2: Wait for and click date picker button
+            await new Promise((resolve, reject) => {
+                const findDateButton = () => {
+                    const dateButton = Array.from(document.querySelectorAll('button.shadow-teal-input-shadow')).find(btn => {
+                        const hasCalendarIcon = btn.querySelector('g[id="Icons/calendar/primary-calendar"]');
+                        const hasDateText = btn.querySelector('span.ml-2')?.textContent.match(/[A-Za-z]+,\s+[A-Za-z]+\s+\d+\s+-\s+[A-Za-z]+,\s+[A-Za-z]+\s+\d+/);
+                        return hasCalendarIcon && hasDateText;
+                    });
+
+                    if (dateButton) {
+                        dateButton.click();
+                        console.log('Clicked date picker button');
+                        resolve();
+                        return true;
+                    }
+                    return false;
+                };
+
+                if (!findDateButton()) {
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (findDateButton()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Date picker button not found after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Add a small delay before step 3
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 3: Use our new robust findAndClickSpecifySiteTypeButton() function
+            const siteTypeButtonClicked = findAndClickSpecifySiteTypeButton();
+            if (!siteTypeButtonClicked) {
+                throw new Error('Failed to click Specify Site Type button');
+            }
+
+            // Add a small delay before step 4
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 4: Select "Camping" from dropdown
+            await new Promise((resolve, reject) => {
+                const findAndClickDropdown = () => {
+                    // First find and click the dropdown button
+                    const dropdownButton = document.querySelector('button.ae-select');
+                    if (dropdownButton) {
+                        dropdownButton.click();
+                        console.log('Clicked dropdown button');
+
+                        // Wait briefly for dropdown to open
+                        setTimeout(() => {
+                            // Find and click the "Camping" option
+                            const campingOption = Array.from(document.querySelectorAll('.dropdown-menu.ae-show a'))
+                                .find(option => option.textContent.includes('Camping') &&
+                                             !option.textContent.includes('Group') &&
+                                             !option.textContent.includes('Hook Up'));
+
+                            if (campingOption) {
+                                campingOption.click();
+                                console.log('Selected Camping option');
+                                resolve();
+                                return true;
+                            } else {
+                                reject(new Error('Camping option not found'));
+                                return false;
+                            }
+                        }, 250);
+                        return true;
+                    }
+                    return false;
+                };
+
+                if (!findAndClickDropdown()) {
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (findAndClickDropdown()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Dropdown button not found after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Add a small delay before step 5
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 5: Select equipment filters (if specified)
+            if (equipmentType && equipmentType.trim() !== '') {
+                console.log('Equipment filters specified, selecting equipment filters');
+                const equipmentFilterSuccess = await selectEquipmentFilters(equipmentType, equipmentLength);
+                if (!equipmentFilterSuccess) {
+                    console.log('Equipment filter selection failed, but continuing with Show Results');
+                }
+            } else {
+                console.log('No equipment filters specified, skipping equipment filter selection');
+            }
+
+            // Add a small delay before step 6
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 6: Click Show Results button
+            await new Promise((resolve, reject) => {
+                const findShowResultsButton = () => {
+                    const button = Array.from(document.querySelectorAll('button.btn.btn-teal'))
+                        .find(btn => btn.textContent.trim() === 'Show Results');
+
+                    if (button) {
+                        button.click();
+                        // Add a small delay before resolving to allow the datepicker to cleanup
+                        setTimeout(() => {
+                            console.log('Clicked Show Results button');
+                            resolve();
+                        }, 250);
+                        return true;
+                    }
+                    return false;
+                };
+
+                if (!findShowResultsButton()) {
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (findShowResultsButton()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Show Results button not found after timeout'));
+                    }, 5000);
+                }
+            });
+
+            console.log('Site type selection completed successfully');
+            return true;
+        } catch (error) {
+            console.error('Error in selectSiteTypeOnly:', error);
+            return false;
+        }
+    }
 
     // Robust button selector function for Specify Site Type button
     function findAndClickSpecifySiteTypeButton() {
@@ -343,7 +675,7 @@
             });
 
             // Small delay after page is ready
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 1: Click search box
             await new Promise((resolve, reject) => {
@@ -397,7 +729,7 @@
             });
 
             // Add a small delay before step 3
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 3: Click the third date picker using exact provided code
             await new Promise((resolve, reject) => {
@@ -429,7 +761,7 @@
             });
 
             // Add a small delay before attempting date selection
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 4: Select date range
             async function selectDateRange(startDate, endDate) {
@@ -505,7 +837,7 @@
                     startCell.click();
 
                     // Brief wait between clicks
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 500));
 
                     // Find and click end date
                     const endCell = findDateCell(endYear, endMonth, endDay);
@@ -528,7 +860,7 @@
             }
 
             // Add a small delay before attempting to select camping type
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 5: Select "Camping" from dropdown
             await new Promise((resolve, reject) => {
@@ -582,7 +914,7 @@
             });
 
             // Add a small delay before step 6
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 6: Select equipment filters (if specified)
             if (equipmentType && equipmentType.trim() !== '') {
@@ -596,7 +928,7 @@
             }
 
             // Add a small delay before step 7
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 7: Click Show Results button
             await new Promise((resolve, reject) => {
