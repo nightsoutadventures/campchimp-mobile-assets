@@ -624,8 +624,10 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                     }
 
         // Final step: Scroll to top of page for better user experience
+        // add a small delay before scrolling to top
+        await new Promise(resolve => setTimeout(resolve, 300));
         console.log('Scrolling to top of page');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0,0);
         
         return true;
 
