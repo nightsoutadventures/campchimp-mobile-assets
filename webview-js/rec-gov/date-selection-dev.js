@@ -1,15 +1,15 @@
-    // DEVELOPMENT VERSION - This file is used for Xcode debug builds only
-    console.log('🔧 Using Rec.gov date-selection-dev.js (Development Build)');
-    
-    async function selectCampingDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
-        // TEMPORARY: Alert to show equipment filters when they're not empty
-        if (equipmentType && equipmentType.trim() !== '') {
-            const alertMessage = `Equipment Filters Detected!\n\nType: ${equipmentType}\nLength: ${equipmentLength || 'N/A'}`;
-            alert(alertMessage);
-            console.log('🔧 Equipment filters detected:', { equipmentType, equipmentLength });
-        }
-        
-        // Helper function to wait for an element with timeout
+// DEVELOPMENT VERSION - This file is used for Xcode debug builds only
+console.log('🔧 Using Rec.gov date-selection-dev.js (Development Build)');
+
+async function selectCampingDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
+    // TEMPORARY: Alert to show equipment filters when they're not empty
+    if (equipmentType && equipmentType.trim() !== '') {
+        const alertMessage = `Equipment Filters Detected!\n\nType: ${equipmentType}\nLength: ${equipmentLength || 'N/A'}`;
+        alert(alertMessage);
+        console.log('🔧 Equipment filters detected:', { equipmentType, equipmentLength });
+    }
+
+    // Helper function to wait for an element with timeout
     function waitForElement(selector, timeout = 2000) {
         return new Promise((resolve, reject) => {
             if (document.querySelector(selector)) {
@@ -256,36 +256,36 @@
         }
 
         console.log('Date selection completed successfully');
-        
+
         // Step 7: Handle equipment filters if specified
         if (equipmentType && equipmentType.trim() !== '') {
             console.log('Equipment filters specified, applying equipment filters');
-            
+
             // Small delay before equipment filter selection
             await new Promise(resolve => setTimeout(resolve, 500));
-            
+
             // Click the Filter/Sort button
             const filterButton = document.querySelector('button.filters-button[aria-label="Filter / Sort"]') ||
-                                document.querySelector('button.sarsa-button-tertiary[aria-label="Filter / Sort"]') ||
-                                document.querySelector('button:has(.rec-icon-filter-list)') ||
-                                Array.from(document.querySelectorAll('button')).find(btn => 
-                                    btn.textContent.includes('Filter') || btn.textContent.includes('Sort')
-                                );
-            
+                document.querySelector('button.sarsa-button-tertiary[aria-label="Filter / Sort"]') ||
+                document.querySelector('button:has(.rec-icon-filter-list)') ||
+                Array.from(document.querySelectorAll('button')).find(btn =>
+                    btn.textContent.includes('Filter') || btn.textContent.includes('Sort')
+                );
+
             if (filterButton) {
                 console.log('Clicking Filter/Sort button');
                 filterButton.click();
-                
+
                 // Wait for filter panel to open
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // Handle different equipment types
                 if (equipmentType.toLowerCase() === 'tent') {
                     // Click tent checkbox
                     const tentCheckbox = document.querySelector('input[type="checkbox"]#tent') ||
-                                       document.querySelector('input[type="checkbox"][value="tent"]') ||
-                                       document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
-                    
+                        document.querySelector('input[type="checkbox"][value="tent"]') ||
+                        document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
+
                     if (tentCheckbox) {
                         console.log('Clicking tent checkbox');
                         tentCheckbox.click();
@@ -295,24 +295,24 @@
                 } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
                     // Click RMT checkbox
                     const rmtCheckbox = document.querySelector('input[type="checkbox"]#rmt') ||
-                                      document.querySelector('input[type="checkbox"][value="rmt"]') ||
-                                      document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
-                    
+                        document.querySelector('input[type="checkbox"][value="rmt"]') ||
+                        document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
+
                     if (rmtCheckbox) {
                         console.log('Clicking RMT checkbox');
                         rmtCheckbox.click();
-                        
+
                         // Small delay after checkbox click
                         await new Promise(resolve => setTimeout(resolve, 250));
-                        
+
                         // Set vehicle length if specified
                         if (equipmentLength && equipmentLength.trim() !== '') {
                             const lengthValue = parseInt(equipmentLength);
                             if (!isNaN(lengthValue)) {
                                 const vehicleLengthInput = document.querySelector('input[type="text"]#vehicle-length') ||
-                                                         document.querySelector('input[type="text"][name="numberField"]') ||
-                                                         document.querySelector('input.with-unit-after[pattern="\\d*"]');
-                                
+                                    document.querySelector('input[type="text"][name="numberField"]') ||
+                                    document.querySelector('input.with-unit-after[pattern="\\d*"]');
+
                                 if (vehicleLengthInput) {
                                     console.log(`Setting vehicle length to: ${lengthValue}`);
                                     vehicleLengthInput.value = lengthValue.toString();
@@ -327,7 +327,7 @@
                         console.log('RMT checkbox not found');
                     }
                 }
-                
+
                 // Small delay after equipment filter selection
                 await new Promise(resolve => setTimeout(resolve, 250));
             } else {
@@ -336,15 +336,18 @@
         } else {
             console.log('No equipment filters specified, skipping equipment filter selection');
         }
-        
-        // Step 8: Click View Results button (if equipment filters were applied)
+
+                // Step 8: Click View Results button (if equipment filters were applied)
         if (equipmentType && equipmentType.trim() !== '') {
-            const viewResultsButton = document.querySelector('button.sarsa-button-primary:has(.sarsa-button-content:contains("View"))') ||
-                                    document.querySelector('button.sarsa-button-primary:has(.sarsa-button-content:contains("Results"))') ||
-                                    Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
-                                        const text = btn.textContent.toLowerCase();
-                                        return text.includes('view') && text.includes('results');
-                                    });
+            // Use a more compatible selector approach
+            const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
+                const text = btn.textContent.toLowerCase();
+                return text.includes('view') && text.includes('results');
+            }) ||
+            Array.from(document.querySelectorAll('button')).find(btn => {
+                const text = btn.textContent.toLowerCase();
+                return text.includes('view') && text.includes('results');
+            });
             
             if (viewResultsButton) {
                 console.log('Clicking View Results button');
@@ -353,7 +356,7 @@
                 console.log('View Results button not found');
             }
         }
-        
+
         return true;
 
     } catch (error) {
