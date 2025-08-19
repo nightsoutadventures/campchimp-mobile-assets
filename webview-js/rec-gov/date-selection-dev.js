@@ -44,6 +44,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
 
     // Helper function to set vehicle length with enhanced WebView compatibility
     async function setVehicleLength(value) {
+        console.log('🚀 setVehicleLength function called with value:', value);
         console.log('🔍 Starting vehicle length field detection...');
         
         // Try multiple selectors to find the vehicle length field
@@ -500,12 +501,18 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                                 console.log(`Equipment length parameter: "${equipmentLength}"`);
                                 console.log(`Parsed length value: ${lengthValue}`);
                                 
-                                const success = await setVehicleLength(lengthValue.toString());
-                                
-                                if (success) {
-                                    console.log('✅ Vehicle length setting completed successfully');
-                                } else {
-                                    console.log('❌ Vehicle length setting failed');
+                                console.log('🔧 About to call setVehicleLength function...');
+                                try {
+                                    const success = await setVehicleLength(lengthValue.toString());
+                                    console.log('🔧 setVehicleLength function completed, success:', success);
+                                    
+                                    if (success) {
+                                        console.log('✅ Vehicle length setting completed successfully');
+                                    } else {
+                                        console.log('❌ Vehicle length setting failed');
+                                    }
+                                } catch (error) {
+                                    console.error('❌ Error calling setVehicleLength:', error);
                                 }
                                 console.log('=== VEHICLE LENGTH SETTING END ===');
                             } else {
