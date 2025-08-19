@@ -42,8 +42,8 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         return false;
     }
 
-    // Helper function to set vehicle length
-    function setVehicleLength(value) {
+    // Helper function to set vehicle length with enhanced WebView compatibility
+    async function setVehicleLength(value) {
         const field = document.getElementById('vehicle-length');
         
         if (!field) {
@@ -51,20 +51,56 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             return false;
         }
         
-        // Focus on the field (simulates clicking)
-        field.focus();
+        console.log('Setting vehicle length with enhanced WebView compatibility');
         
-        // Clear existing value and set new value
-        field.value = '';
-        field.value = value;
-        
-        // Trigger events that frameworks might be listening for
-        field.dispatchEvent(new Event('focus', { bubbles: true }));
-        field.dispatchEvent(new Event('input', { bubbles: true }));
-        field.dispatchEvent(new Event('change', { bubbles: true }));
-        field.dispatchEvent(new Event('blur', { bubbles: true }));
-        
-        return true;
+        try {
+            // Simulate touch events for mobile WebView
+            field.dispatchEvent(new TouchEvent('touchstart', {
+                bubbles: true,
+                cancelable: true,
+                touches: [new Touch({
+                    identifier: 1,
+                    target: field,
+                    clientX: field.offsetLeft + field.offsetWidth / 2,
+                    clientY: field.offsetTop + field.offsetHeight / 2
+                })]
+            }));
+            
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            field.focus();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            field.click(); // Sometimes needed for WebView
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Clear existing value
+            field.value = '';
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            // Set new value using multiple approaches
+            field.value = value;
+            field.setAttribute('value', value);
+            
+            // More comprehensive event dispatching
+            ['input', 'change', 'keyup', 'blur'].forEach(eventType => {
+                field.dispatchEvent(new Event(eventType, { bubbles: true }));
+            });
+            
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            field.dispatchEvent(new TouchEvent('touchend', {
+                bubbles: true,
+                cancelable: true
+            }));
+            
+            console.log(`Vehicle length set to: ${value}`);
+            return true;
+            
+        } catch (error) {
+            console.error('Error setting vehicle length:', error);
+            return false;
+        }
     }
 
     try {
@@ -353,7 +389,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                             const lengthValue = parseInt(equipmentLength);
                             if (!isNaN(lengthValue)) {
                                 console.log(`Setting vehicle length to: ${lengthValue}`);
-                                const success = setVehicleLength(lengthValue.toString());
+                                const success = await setVehicleLength(lengthValue.toString());
                                 if (!success) {
                                     console.log('Failed to set vehicle length');
                                 }
