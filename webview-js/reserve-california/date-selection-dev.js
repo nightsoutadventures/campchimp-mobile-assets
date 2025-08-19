@@ -1,6 +1,229 @@
     // DEVELOPMENT VERSION - This file is used for Xcode debug builds only
     console.log('🔧 Using Reserve California date-selection-dev.js (Development Build)');
     
+    // Helper function to select equipment filters
+    async function selectEquipmentFilters(equipmentType, equipmentLength) {
+        try {
+            console.log('Starting equipment filter selection:', { equipmentType, equipmentLength });
+            
+            // If no equipment type specified, skip equipment filter selection
+            if (!equipmentType || equipmentType.trim() === '') {
+                console.log('No equipment type specified, skipping equipment filter selection');
+                return true;
+            }
+            
+            // Step 1: Click "Select Camping Equipment" dropdown
+            await new Promise((resolve, reject) => {
+                const findEquipmentDropdown = () => {
+                    const dropdownButton = document.querySelector('#\\:sleeping-units-dropdown-button');
+                    if (dropdownButton) {
+                        dropdownButton.click();
+                        console.log('Clicked Select Camping Equipment dropdown');
+                        resolve();
+                        return true;
+                    }
+                    return false;
+                };
+
+                if (!findEquipmentDropdown()) {
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (findEquipmentDropdown()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Equipment dropdown not found after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Small delay for dropdown to open
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 2: Select equipment type
+            await new Promise((resolve, reject) => {
+                const selectEquipmentType = () => {
+                    const dropdownMenu = document.querySelector('#\\:sleeping-units-dropdown-box.ae-show');
+                    if (!dropdownMenu) {
+                        return false;
+                    }
+
+                    let targetOption = null;
+                    
+                    // Map equipment types to dropdown options
+                    switch (equipmentType.toLowerCase()) {
+                        case 'rv':
+                            targetOption = document.querySelector('#\\:sleeping-units-1');
+                            break;
+                        case 'tent':
+                            targetOption = document.querySelector('#\\:sleeping-units-2');
+                            break;
+                        case 'trailer':
+                            targetOption = document.querySelector('#\\:sleeping-units-3');
+                            break;
+                        default:
+                            console.log('Unknown equipment type:', equipmentType);
+                            reject(new Error(`Unknown equipment type: ${equipmentType}`));
+                            return false;
+                    }
+
+                    if (targetOption) {
+                        targetOption.click();
+                        console.log('Selected equipment type:', equipmentType);
+                        resolve();
+                        return true;
+                    } else {
+                        console.log('Equipment type option not found for:', equipmentType);
+                        reject(new Error(`Equipment type option not found for: ${equipmentType}`));
+                        return false;
+                    }
+                };
+
+                if (!selectEquipmentType()) {
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (selectEquipmentType()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Equipment type selection failed after timeout'));
+                    }, 5000);
+                }
+            });
+
+            // Small delay after equipment type selection
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 3: If RV or Trailer, select equipment length
+            if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
+                if (!equipmentLength || equipmentLength.trim() === '') {
+                    console.log('RV/Trailer selected but no length specified, continuing without length filter');
+                    return true;
+                }
+
+                // Parse equipment length and map to dropdown option
+                const lengthValue = parseInt(equipmentLength);
+                if (isNaN(lengthValue)) {
+                    console.log('Invalid equipment length:', equipmentLength, 'continuing without length filter');
+                    return true;
+                }
+
+                // Map length to dropdown option (round down to nearest 10' increment)
+                let targetLengthOption = null;
+                if (lengthValue <= 10) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-1'); // > 10 feet
+                } else if (lengthValue <= 20) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-2'); // > 20 feet
+                } else if (lengthValue <= 30) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-3'); // > 30 feet
+                } else if (lengthValue <= 40) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-4'); // > 40 feet
+                } else if (lengthValue <= 50) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-5'); // > 50 feet
+                } else if (lengthValue <= 60) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-6'); // > 60 feet
+                } else {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-7'); // > 70 feet
+                }
+
+                if (targetLengthOption) {
+                    // Click the length dropdown button first
+                    await new Promise((resolve, reject) => {
+                        const findLengthDropdown = () => {
+                            const dropdownButton = document.querySelector('#\\:min-vehicle-length-dropdown-button');
+                            if (dropdownButton) {
+                                dropdownButton.click();
+                                console.log('Clicked Select Trailer Length dropdown');
+                                resolve();
+                                return true;
+                            }
+                            return false;
+                        };
+
+                        if (!findLengthDropdown()) {
+                            const observer = new MutationObserver((mutations, obs) => {
+                                if (findLengthDropdown()) {
+                                    obs.disconnect();
+                                }
+                            });
+
+                            observer.observe(document.body, {
+                                childList: true,
+                                subtree: true
+                            });
+
+                            setTimeout(() => {
+                                observer.disconnect();
+                                reject(new Error('Length dropdown not found after timeout'));
+                            }, 5000);
+                        }
+                    });
+
+                    // Small delay for dropdown to open
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    // Select the length option
+                    await new Promise((resolve, reject) => {
+                        const selectLength = () => {
+                            const dropdownMenu = document.querySelector('#\\:min-vehicle-length-dropdown-box.ae-show');
+                            if (dropdownMenu && targetLengthOption) {
+                                targetLengthOption.click();
+                                console.log('Selected equipment length:', equipmentLength, 'mapped to dropdown option');
+                                resolve();
+                                return true;
+                            }
+                            return false;
+                        };
+
+                        if (!selectLength()) {
+                            const observer = new MutationObserver((mutations, obs) => {
+                                if (selectLength()) {
+                                    obs.disconnect();
+                                }
+                            });
+
+                            observer.observe(document.body, {
+                                childList: true,
+                                subtree: true
+                            });
+
+                            setTimeout(() => {
+                                observer.disconnect();
+                                reject(new Error('Length selection failed after timeout'));
+                            }, 5000);
+                        }
+                    });
+
+                    // Small delay after length selection
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } else {
+                    console.log('Length dropdown option not found for length:', equipmentLength, 'continuing without length filter');
+                }
+            }
+
+            console.log('Equipment filter selection completed successfully');
+            return true;
+        } catch (error) {
+            console.error('Error in selectEquipmentFilters:', error);
+            // Fail gracefully - log error but continue
+            return false;
+        }
+    }
+    
     // New main entry point that implements hybrid approach
     async function selectCampgroundDates(startDate, endDate, equipmentType = '', equipmentLength = '') {
         // TEMPORARY: Alert to show equipment filters when they're not empty
@@ -20,11 +243,11 @@
             if (hasDateParams) {
                 console.log('URL has date parameters, using query string approach + site type selection');
                 // Query string approach worked, just need to select site type
-                return await selectSiteTypeOnly();
+                return await selectSiteTypeOnly(equipmentType, equipmentLength);
             } else {
                 console.log('URL does not have date parameters, using full JavaScript fallback');
                 // Query string approach didn't work, use full JavaScript fallback
-                return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate);
+                return await selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType, equipmentLength);
             }
         } catch (error) {
             console.error('Error in selectCampgroundDates (hybrid):', error);
@@ -33,7 +256,7 @@
     }
 
     // New function for site type selection only (when query strings worked for dates)
-    async function selectSiteTypeOnly() {
+    async function selectSiteTypeOnly(equipmentType, equipmentLength) {
         try {
             console.log('Starting site type selection only');
             
@@ -193,7 +416,21 @@
             // Add a small delay before step 5
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Step 5: Click Show Results button
+            // Step 5: Select equipment filters (if specified)
+            if (equipmentType && equipmentType.trim() !== '') {
+                console.log('Equipment filters specified, selecting equipment filters');
+                const equipmentFilterSuccess = await selectEquipmentFilters(equipmentType, equipmentLength);
+                if (!equipmentFilterSuccess) {
+                    console.log('Equipment filter selection failed, but continuing with Show Results');
+                }
+            } else {
+                console.log('No equipment filters specified, skipping equipment filter selection');
+            }
+
+            // Add a small delay before step 6
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 6: Click Show Results button
             await new Promise((resolve, reject) => {
                 const findShowResultsButton = () => {
                     const button = Array.from(document.querySelectorAll('button.btn.btn-teal'))
@@ -292,7 +529,7 @@
     }
 
     // Renamed existing function (fallback)
-    async function selectCampgroundDatesFallbackFullJavascript(startDate, endDate) {
+    async function selectCampgroundDatesFallbackFullJavascript(startDate, endDate, equipmentType = '', equipmentLength = '') {
         try {
             // Initial step: Wait for page to be ready
             await new Promise((resolve, reject) => {
@@ -569,10 +806,24 @@
                 }
             });
 
-            // Add a small delay before looking for Show Results button
+            // Add a small delay before step 6
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Step 6: Click Show Results button
+            // Step 6: Select equipment filters (if specified)
+            if (equipmentType && equipmentType.trim() !== '') {
+                console.log('Equipment filters specified, selecting equipment filters');
+                const equipmentFilterSuccess = await selectEquipmentFilters(equipmentType, equipmentLength);
+                if (!equipmentFilterSuccess) {
+                    console.log('Equipment filter selection failed, but continuing with Show Results');
+                }
+            } else {
+                console.log('No equipment filters specified, skipping equipment filter selection');
+            }
+
+            // Add a small delay before step 7
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 7: Click Show Results button
             await new Promise((resolve, reject) => {
                 const findShowResultsButton = () => {
                     const button = Array.from(document.querySelectorAll('button.btn.btn-teal'))
