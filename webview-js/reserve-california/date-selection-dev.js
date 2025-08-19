@@ -125,16 +125,18 @@
                 // Map length to dropdown option (round down to nearest 10' increment)
                 let targetLengthOption = null;
                 if (lengthValue <= 10) {
-                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-1'); // > 10 feet
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-0'); // "— Select one" (no filter)
                 } else if (lengthValue <= 20) {
-                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-2'); // > 20 feet
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-1'); // > 10 feet
                 } else if (lengthValue <= 30) {
-                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-3'); // > 30 feet
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-2'); // > 20 feet
                 } else if (lengthValue <= 40) {
-                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-4'); // > 40 feet
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-3'); // > 30 feet
                 } else if (lengthValue <= 50) {
-                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-5'); // > 50 feet
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-4'); // > 40 feet
                 } else if (lengthValue <= 60) {
+                    targetLengthOption = document.querySelector('#\\:min-vehicle-length-5'); // > 50 feet
+                } else if (lengthValue <= 70) {
                     targetLengthOption = document.querySelector('#\\:min-vehicle-length-6'); // > 60 feet
                 } else {
                     targetLengthOption = document.querySelector('#\\:min-vehicle-length-7'); // > 70 feet
