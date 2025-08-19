@@ -4,11 +4,20 @@
     // Helper function to detect if correct date range is already selected
     function isCorrectDateRangeSelected(startDate, endDate) {
         try {
+            console.log('DEBUG: Attempting to find search box for date range detection');
+            
+            // Try multiple selectors to find the search box
             const searchBox = document.querySelector('.hidden.lg\\:flex.items-center.shadow-teal-input-shadow') ||
-                            document.querySelector('div:has(> span.truncate)');
+                            document.querySelector('div:has(> span.truncate)') ||
+                            document.querySelector('[class*="shadow-teal-input-shadow"]') ||
+                            document.querySelector('div[class*="flex items-center"]');
             
             if (!searchBox) {
                 console.log('Search box not found for date range detection');
+                console.log('DEBUG: Available elements with similar classes:');
+                document.querySelectorAll('[class*="shadow"]').forEach((el, i) => {
+                    console.log(`DEBUG: Element ${i}:`, el.className);
+                });
                 return false;
             }
             
@@ -323,8 +332,20 @@
             // Small delay after page is ready
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            // Now check if correct date range is already selected (URL parameters worked)
-            const hasCorrectDates = isCorrectDateRangeSelected(startDate, endDate);
+            // Try multiple times to find the search box with increasing delays
+            let hasCorrectDates = false;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                console.log(`DEBUG: Date range detection attempt ${attempt}/3`);
+                hasCorrectDates = isCorrectDateRangeSelected(startDate, endDate);
+                if (hasCorrectDates) {
+                    console.log(`DEBUG: Date range detection successful on attempt ${attempt}`);
+                    break;
+                }
+                if (attempt < 3) {
+                    console.log(`DEBUG: Waiting 1 second before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
             
             if (hasCorrectDates) {
                 console.log('Correct date range already selected, using site type selection only');
