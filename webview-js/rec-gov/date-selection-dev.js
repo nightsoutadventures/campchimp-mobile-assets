@@ -42,6 +42,84 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         return false;
     }
 
+    // Helper function to clear vehicle length to 0
+    async function clearVehicleLength() {
+        // Wait for vehicle length field to be present
+        console.log('🔍 Waiting for vehicle length field to be available...');
+        let vehicleLengthField = null;
+        let attempts = 0;
+        const maxAttempts = 20; // 2 seconds total (20 * 100ms)
+        
+        while (!vehicleLengthField && attempts < maxAttempts) {
+            vehicleLengthField = document.getElementById('vehicle-length');
+            if (!vehicleLengthField) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+        }
+        
+        if (!vehicleLengthField) {
+            console.log('Vehicle length field not found for clearing after waiting');
+            console.log('🔍 Available input fields:', Array.from(document.querySelectorAll('input')).map(i => ({
+                id: i.id,
+                name: i.name,
+                type: i.type,
+                value: i.value,
+                placeholder: i.placeholder
+            })));
+            return false;
+        }
+        
+        console.log('✅ Vehicle length field found for clearing');
+        
+        const currentLength = parseInt(vehicleLengthField.value) || 0;
+        console.log(`🔍 Vehicle length field details:`, {
+            value: vehicleLengthField.value,
+            parsedValue: currentLength,
+            type: vehicleLengthField.type,
+            id: vehicleLengthField.id,
+            name: vehicleLengthField.name
+        });
+        
+        if (currentLength === 0) {
+            console.log('Vehicle length already 0, no clearing needed');
+            return true;
+        }
+        
+        console.log(`Clearing vehicle length from ${currentLength} to 0`);
+        
+        // Find the decrement button and click it until we reach 0
+        const decrementButton = document.querySelector('button[aria-label="Remove feet"]') ||
+                              document.querySelector('button:has(.rec-icon-remove-circle-outline)') ||
+                              Array.from(document.querySelectorAll('button')).find(btn => 
+                                  btn.querySelector('.rec-icon-remove-circle-outline')
+                              );
+        
+        if (!decrementButton) {
+            console.log('Decrement button not found for clearing vehicle length');
+            return false;
+        }
+        
+        for (let i = 0; i < currentLength; i++) {
+            if (decrementButton.disabled) {
+                console.log('Decrement button disabled, stopping');
+                break;
+            }
+            decrementButton.click();
+            await new Promise(resolve => setTimeout(resolve, 25));
+            
+            const newValue = parseInt(vehicleLengthField.value) || 0;
+            if (newValue === 0) {
+                console.log('Vehicle length cleared to 0');
+                break;
+            }
+        }
+        
+        const finalValue = parseInt(vehicleLengthField.value) || 0;
+        console.log(`Final vehicle length after clearing: ${finalValue}`);
+        return finalValue === 0;
+    }
+
     // Helper function to set vehicle length using +/- buttons
     async function setVehicleLength(value) {
         console.log('🚀 setVehicleLength function called with value:', value);
@@ -440,6 +518,11 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                     } else {
                         console.log('Tent checkbox not found');
                     }
+                    
+                    // Clear vehicle length for tent (tents don't need vehicle length)
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await clearVehicleLength();
+                    
                 } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
                     // Click RMT checkbox
                     const rmtCheckbox = document.querySelector('input[type="checkbox"]#rmt') ||
@@ -521,43 +604,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             }
             
             // Clear vehicle length if it's not 0
-            const vehicleLengthField = document.getElementById('vehicle-length');
-            if (vehicleLengthField) {
-                const currentLength = parseInt(vehicleLengthField.value) || 0;
-                if (currentLength > 0) {
-                    console.log(`Clearing vehicle length from ${currentLength} to 0`);
-                    
-                    // Find the decrement button and click it until we reach 0
-                    const decrementButton = document.querySelector('button[aria-label="Remove feet"]') ||
-                                          document.querySelector('button:has(.rec-icon-remove-circle-outline)') ||
-                                          Array.from(document.querySelectorAll('button')).find(btn => 
-                                              btn.querySelector('.rec-icon-remove-circle-outline')
-                                          );
-                    
-                    if (decrementButton) {
-                        for (let i = 0; i < currentLength; i++) {
-                            if (decrementButton.disabled) {
-                                console.log('Decrement button disabled, stopping');
-                                break;
-                            }
-                            decrementButton.click();
-                            await new Promise(resolve => setTimeout(resolve, 25));
-                            
-                            const newValue = parseInt(vehicleLengthField.value) || 0;
-                            if (newValue === 0) {
-                                console.log('Vehicle length cleared to 0');
-                                break;
-                            }
-                        }
-                    } else {
-                        console.log('Decrement button not found for clearing vehicle length');
-                    }
-                } else {
-                    console.log('Vehicle length already 0, no clearing needed');
-                }
-            } else {
-                console.log('Vehicle length field not found for clearing');
-            }
+            await clearVehicleLength();
             
             console.log('Equipment filter clearing completed');
         }
