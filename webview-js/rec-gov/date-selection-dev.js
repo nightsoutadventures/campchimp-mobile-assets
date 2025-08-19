@@ -281,7 +281,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             console.log('Equipment filters specified, applying equipment filters');
 
             // Small delay before equipment filter selection
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 250));
 
             // Click the Filter/Sort button
             const filterButton = document.querySelector('button.filters-button[aria-label="Filter / Sort"]') ||
@@ -295,16 +295,40 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                 console.log('Clicking Filter/Sort button');
                 filterButton.click();
 
-                // Wait for filter panel to open
+                                // Wait for filter panel to open
                 await new Promise(resolve => setTimeout(resolve, 500));
-
+                
+                // Clear any existing equipment filter checkboxes first
+                const existingTentCheckbox = document.querySelector('input[type="checkbox"]#tent:checked') ||
+                                           document.querySelector('input[type="checkbox"][value="tent"]:checked') ||
+                                           document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]:checked');
+                
+                const existingRmtCheckbox = document.querySelector('input[type="checkbox"]#rmt:checked') ||
+                                          document.querySelector('input[type="checkbox"][value="rmt"]:checked') ||
+                                          document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]:checked');
+                
+                if (existingTentCheckbox) {
+                    console.log('Clearing existing tent checkbox');
+                    existingTentCheckbox.click();
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (existingRmtCheckbox) {
+                    console.log('Clearing existing RMT checkbox');
+                    existingRmtCheckbox.click();
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // Small delay after clearing existing checkboxes
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
                 // Handle different equipment types
                 if (equipmentType.toLowerCase() === 'tent') {
                     // Click tent checkbox
                     const tentCheckbox = document.querySelector('input[type="checkbox"]#tent') ||
-                        document.querySelector('input[type="checkbox"][value="tent"]') ||
-                        document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
-
+                                       document.querySelector('input[type="checkbox"][value="tent"]') ||
+                                       document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
+                    
                     if (tentCheckbox) {
                         console.log('Clicking tent checkbox');
                         tentCheckbox.click();
@@ -314,17 +338,17 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                 } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
                     // Click RMT checkbox
                     const rmtCheckbox = document.querySelector('input[type="checkbox"]#rmt') ||
-                        document.querySelector('input[type="checkbox"][value="rmt"]') ||
-                        document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
-
+                                      document.querySelector('input[type="checkbox"][value="rmt"]') ||
+                                      document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
+                    
                     if (rmtCheckbox) {
                         console.log('Clicking RMT checkbox');
                         rmtCheckbox.click();
-
+                        
                         // Small delay after checkbox click
                         await new Promise(resolve => setTimeout(resolve, 250));
-
-                                                // Set vehicle length if specified
+                        
+                        // Set vehicle length if specified
                         if (equipmentLength && equipmentLength.trim() !== '') {
                             const lengthValue = parseInt(equipmentLength);
                             if (!isNaN(lengthValue)) {
