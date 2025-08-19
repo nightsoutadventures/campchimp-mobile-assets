@@ -47,7 +47,7 @@
             });
 
             // Small delay for dropdown to open
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 2: Select equipment type
             await new Promise((resolve, reject) => {
@@ -108,7 +108,7 @@
             });
 
             // Small delay after equipment type selection
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 3: If RV or Trailer, select equipment length
             if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
@@ -178,7 +178,7 @@
                     });
 
                     // Small delay for dropdown to open
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 500));
 
                     // Select the length option
                     await new Promise((resolve, reject) => {
@@ -213,7 +213,7 @@
                     });
 
                     // Small delay after length selection
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
                     console.log('Length dropdown option not found for length:', equipmentLength, 'continuing without length filter');
                 }
@@ -343,7 +343,7 @@
             });
 
             // Small delay after page is ready
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 1: Click search box
             await new Promise((resolve, reject) => {
@@ -397,7 +397,7 @@
             });
 
             // Add a small delay before step 3
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 3: Click the third date picker using exact provided code
             await new Promise((resolve, reject) => {
@@ -429,7 +429,7 @@
             });
 
             // Add a small delay before attempting date selection
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 4: Select date range
             async function selectDateRange(startDate, endDate) {
@@ -505,7 +505,7 @@
                     startCell.click();
 
                     // Brief wait between clicks
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 500));
 
                     // Find and click end date
                     const endCell = findDateCell(endYear, endMonth, endDay);
@@ -528,7 +528,7 @@
             }
 
             // Add a small delay before attempting to select camping type
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 5: Select "Camping" from dropdown
             await new Promise((resolve, reject) => {
@@ -582,7 +582,7 @@
             });
 
             // Add a small delay before step 6
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 6: Select equipment filters (if specified)
             if (equipmentType && equipmentType.trim() !== '') {
@@ -596,7 +596,7 @@
             }
 
             // Add a small delay before step 7
-            await new Promise(resolve => setTimeout(resolve, 350));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Step 7: Click Show Results button
             await new Promise((resolve, reject) => {
