@@ -72,23 +72,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         
         console.log('✅ Vehicle length field found for clearing');
         
-        const currentLength = parseInt(vehicleLengthField.value) || 0;
-        console.log(`🔍 Vehicle length field details:`, {
-            value: vehicleLengthField.value,
-            parsedValue: currentLength,
-            type: vehicleLengthField.type,
-            id: vehicleLengthField.id,
-            name: vehicleLengthField.name
-        });
-        
-        if (currentLength === 0) {
-            console.log('Vehicle length already 0, no clearing needed');
-            return true;
-        }
-        
-        console.log(`Clearing vehicle length from ${currentLength} to 0`);
-        
-        // Find the decrement button and click it until we reach 0
+        // Find the decrement button
         const decrementButton = document.querySelector('button[aria-label="Remove feet"]') ||
                               document.querySelector('button:has(.rec-icon-remove-circle-outline)') ||
                               Array.from(document.querySelectorAll('button')).find(btn => 
@@ -108,24 +92,32 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         
         console.log('✅ Decrement button found for clearing vehicle length');
         
-        for (let i = 0; i < currentLength; i++) {
-            if (decrementButton.disabled) {
-                console.log('Decrement button disabled, stopping');
-                break;
-            }
-            decrementButton.click();
-            await new Promise(resolve => setTimeout(resolve, 25));
-            
-            const newValue = parseInt(vehicleLengthField.value) || 0;
-            if (newValue === 0) {
-                console.log('Vehicle length cleared to 0');
-                break;
-            }
+        // Check if button is already disabled (value is already 0)
+        if (decrementButton.disabled) {
+            console.log('Decrement button already disabled, vehicle length is 0');
+            return true;
         }
         
-        const finalValue = parseInt(vehicleLengthField.value) || 0;
-        console.log(`Final vehicle length after clearing: ${finalValue}`);
-        return finalValue === 0;
+        console.log('Clearing vehicle length to 0 using decrement button disabled state');
+        
+        // Keep clicking decrement button until it becomes disabled
+        let clickCount = 0;
+        const maxClicks = 50; // Safety limit to prevent infinite loop
+        
+        while (!decrementButton.disabled && clickCount < maxClicks) {
+            console.log(`Click ${clickCount + 1} - Button disabled: ${decrementButton.disabled}`);
+            decrementButton.click();
+            await new Promise(resolve => setTimeout(resolve, 25));
+            clickCount++;
+        }
+        
+        if (decrementButton.disabled) {
+            console.log(`✅ Vehicle length cleared to 0 after ${clickCount} clicks`);
+            return true;
+        } else {
+            console.log(`❌ Failed to clear vehicle length after ${maxClicks} clicks`);
+            return false;
+        }
     }
 
     // Helper function to set vehicle length using +/- buttons
