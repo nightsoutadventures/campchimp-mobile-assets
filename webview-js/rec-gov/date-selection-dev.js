@@ -203,7 +203,31 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             await new Promise(resolve => setTimeout(resolve, 100));
             console.log(`Vehicle length set to: ${value}, field value is now: ${field.value}`);
             
-            return field.value === value;
+            // If the value didn't stick, try a more aggressive approach
+            if (field.value !== value) {
+                console.log('⚠️ Value didn\'t stick, trying aggressive approach...');
+                
+                // Try setting the value multiple times with different methods
+                field.value = value;
+                field.setAttribute('value', value);
+                field.defaultValue = value;
+                
+                // Try to trigger the field's change handler directly
+                const event = new Event('input', { bubbles: true, cancelable: true });
+                Object.defineProperty(event, 'target', { value: field });
+                field.dispatchEvent(event);
+                
+                // Wait a bit more
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                console.log(`After aggressive approach, field value is: ${field.value}`);
+            }
+            
+            // Final verification
+            const finalValue = field.value;
+            console.log(`Final verification - field value: "${finalValue}", expected: "${value}"`);
+            
+            return finalValue === value;
             
         } catch (error) {
             console.error('Error setting vehicle length:', error);
@@ -491,6 +515,10 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                         
                         // Small delay after checkbox click
                         await new Promise(resolve => setTimeout(resolve, 250));
+                        
+                        // Wait for the vehicle length field to be fully initialized
+                        console.log('⏳ Waiting for vehicle length field to be ready...');
+                        await new Promise(resolve => setTimeout(resolve, 500));
                         
                         // Set vehicle length if specified
                         if (equipmentLength && equipmentLength.trim() !== '') {
