@@ -363,6 +363,46 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                                 // Wait for filter panel to open
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
+                // Add bottom padding to ensure filter buttons are visible above WebView footer
+                console.log('📱 Adding bottom padding to filter container for WebView compatibility');
+                const filterContainer = document.querySelector('.filter-container') ||
+                                      document.querySelector('[data-component="FilterContainer"]') ||
+                                      document.querySelector('.sarsa-filter-container') ||
+                                      document.querySelector('.filter-panel') ||
+                                      document.body;
+                
+                if (filterContainer) {
+                    // Add CSS to ensure bottom buttons are visible
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .filter-container, [data-component="FilterContainer"], .sarsa-filter-container, .filter-panel {
+                            padding-bottom: 120px !important;
+                            margin-bottom: 120px !important;
+                        }
+                        /* Target the bottom action buttons specifically */
+                        .filter-actions, .filter-buttons, .sarsa-button-group {
+                            margin-bottom: 120px !important;
+                            padding-bottom: 20px !important;
+                        }
+                        /* Ensure the page can scroll to show bottom buttons */
+                        body {
+                            min-height: calc(100vh + 120px) !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    console.log('✅ Added bottom padding CSS for WebView compatibility');
+                } else {
+                    console.log('⚠️ Filter container not found, applying padding to body');
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        body {
+                            padding-bottom: 120px !important;
+                            min-height: calc(100vh + 120px) !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
                 // Clear any existing equipment filter checkboxes first
                 const existingTentCheckbox = document.querySelector('input[type="checkbox"]#tent:checked') ||
                                            document.querySelector('input[type="checkbox"][value="tent"]:checked') ||
