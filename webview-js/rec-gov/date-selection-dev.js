@@ -42,195 +42,92 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
         return false;
     }
 
-    // Helper function to set vehicle length with enhanced WebView compatibility
+    // Helper function to set vehicle length using +/- buttons
     async function setVehicleLength(value) {
         console.log('🚀 setVehicleLength function called with value:', value);
-        console.log('🔍 Starting vehicle length field detection...');
         
-        // Try multiple selectors to find the vehicle length field
-        let field = document.getElementById('vehicle-length');
-        if (field) {
-            console.log('✅ Found field by ID: vehicle-length');
-        } else {
-            console.log('❌ Field not found by ID: vehicle-length');
+        // Find the vehicle length field to get current value
+        const field = document.getElementById('vehicle-length');
+        if (!field) {
+            console.error('Vehicle length field not found');
+            return false;
         }
         
-        if (!field) {
-            field = document.querySelector('input[name="numberField"]');
-            if (field) {
-                console.log('✅ Found field by name: numberField');
-            } else {
-                console.log('❌ Field not found by name: numberField');
-            }
+        const currentValue = parseInt(field.value) || 0;
+        const targetValue = parseInt(value);
+        
+        console.log(`Current vehicle length: ${currentValue}, Target: ${targetValue}`);
+        
+        if (currentValue === targetValue) {
+            console.log('✅ Vehicle length already set to target value');
+            return true;
         }
         
-        if (!field) {
-            field = document.querySelector('input[pattern="\\d*"]');
-            if (field) {
-                console.log('✅ Found field by pattern: \\d*');
-            } else {
-                console.log('❌ Field not found by pattern: \\d*');
-            }
-        }
+        // Find the increment and decrement buttons
+        const incrementButton = document.querySelector('button[aria-label="Add feet"]') ||
+                               document.querySelector('button:has(.rec-icon-add-circle-outline)') ||
+                               Array.from(document.querySelectorAll('button')).find(btn => 
+                                   btn.querySelector('.rec-icon-add-circle-outline')
+                               );
         
-        if (!field) {
-            field = document.querySelector('input.with-unit-after');
-            if (field) {
-                console.log('✅ Found field by class: with-unit-after');
-            } else {
-                console.log('❌ Field not found by class: with-unit-after');
-            }
-        }
+        const decrementButton = document.querySelector('button[aria-label="Remove feet"]') ||
+                               document.querySelector('button:has(.rec-icon-remove-circle-outline)') ||
+                               Array.from(document.querySelectorAll('button')).find(btn => 
+                                   btn.querySelector('.rec-icon-remove-circle-outline')
+                               );
         
-        if (!field) {
-            console.log('🔍 Trying fallback detection for any input with "length"...');
-            // Try to find any input field that might be the vehicle length field
-            const allInputs = document.querySelectorAll('input[type="text"]');
-            console.log(`Found ${allInputs.length} text input fields`);
-            
-            field = Array.from(allInputs).find(input => {
-                const hasLength = input.id.includes('length') || 
-                                input.name.includes('length') || 
-                                input.placeholder?.includes('length') ||
-                                input.getAttribute('aria-describedby')?.includes('length');
-                if (hasLength) {
-                    console.log('✅ Found field by fallback detection:', {
-                        id: input.id,
-                        name: input.name,
-                        placeholder: input.placeholder,
-                        'aria-describedby': input.getAttribute('aria-describedby')
-                    });
-                }
-                return hasLength;
-            });
-            
-            if (!field) {
-                console.log('❌ No field found by fallback detection');
-            }
-        }
-        
-        if (!field) {
-            console.error('Vehicle length field not found - tried multiple selectors');
-            console.log('Available input fields:', Array.from(document.querySelectorAll('input')).map(i => ({
-                id: i.id,
-                name: i.name,
-                type: i.type,
-                placeholder: i.placeholder,
-                'aria-describedby': i.getAttribute('aria-describedby')
+        if (!incrementButton || !decrementButton) {
+            console.error('Increment/decrement buttons not found');
+            console.log('Available buttons:', Array.from(document.querySelectorAll('button')).map(btn => ({
+                'aria-label': btn.getAttribute('aria-label'),
+                'class': btn.className,
+                'disabled': btn.disabled
             })));
             return false;
         }
         
-        console.log('🔍 Found vehicle length field:', {
-            id: field.id,
-            name: field.name,
-            type: field.type,
-            currentValue: field.value,
-            placeholder: field.placeholder,
-            'aria-describedby': field.getAttribute('aria-describedby'),
-            visible: field.offsetParent !== null,
-            disabled: field.disabled,
-            readonly: field.readOnly
-        });
+        console.log('✅ Found increment and decrement buttons');
         
         try {
-            console.log('🎯 Starting vehicle length value setting process...');
+            // Calculate how many clicks we need
+            const clicksNeeded = targetValue - currentValue;
+            const buttonToClick = clicksNeeded > 0 ? incrementButton : decrementButton;
+            const clickCount = Math.abs(clicksNeeded);
             
-            // Simulate touch events for mobile WebView
-            console.log('📱 Dispatching touchstart event...');
-            field.dispatchEvent(new TouchEvent('touchstart', {
-                bubbles: true,
-                cancelable: true,
-                touches: [new Touch({
-                    identifier: 1,
-                    target: field,
-                    clientX: field.offsetLeft + field.offsetWidth / 2,
-                    clientY: field.offsetTop + field.offsetHeight / 2
-                })]
-            }));
+            console.log(`Need to click ${buttonToClick.getAttribute('aria-label')} button ${clickCount} times`);
             
-            await new Promise(resolve => setTimeout(resolve, 50));
-            console.log('⏱️ After touchstart delay');
-            
-            console.log('🎯 Focusing field...');
-            field.focus();
-            await new Promise(resolve => setTimeout(resolve, 100));
-            console.log('⏱️ After focus delay');
-            
-            console.log('🖱️ Clicking field...');
-            field.click(); // Sometimes needed for WebView
-            await new Promise(resolve => setTimeout(resolve, 100));
-            console.log('⏱️ After click delay');
-            
-            // Clear existing value
-            console.log('🧹 Clearing existing value...');
-            const oldValue = field.value;
-            field.value = '';
-            console.log(`Cleared value from "${oldValue}" to ""`);
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            // Set new value using multiple approaches
-            console.log(`📝 Setting new value to "${value}"...`);
-            field.value = value;
-            field.setAttribute('value', value);
-            console.log(`Field value after setting: "${field.value}"`);
-            console.log(`Field attribute value after setting: "${field.getAttribute('value')}"`);
-            
-            // Try to trigger React/Vue/Angular change detection
-            console.log('📡 Dispatching input event...');
-            field.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            console.log('📡 Dispatching change event...');
-            field.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            // Additional events that might be needed
-            console.log('📡 Dispatching additional events (keyup, keydown, blur, focus)...');
-            ['keyup', 'keydown', 'blur', 'focus'].forEach(eventType => {
-                field.dispatchEvent(new Event(eventType, { bubbles: true, cancelable: true }));
-            });
-            
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            console.log('📱 Dispatching touchend event...');
-            field.dispatchEvent(new TouchEvent('touchend', {
-                bubbles: true,
-                cancelable: true
-            }));
-            
-            // Verify the value was set
-            await new Promise(resolve => setTimeout(resolve, 100));
-            console.log(`Vehicle length set to: ${value}, field value is now: ${field.value}`);
-            
-            // If the value didn't stick, try a more aggressive approach
-            if (field.value !== value) {
-                console.log('⚠️ Value didn\'t stick, trying aggressive approach...');
+            // Click the appropriate button the required number of times
+            for (let i = 0; i < clickCount; i++) {
+                console.log(`Click ${i + 1}/${clickCount}`);
                 
-                // Try setting the value multiple times with different methods
-                field.value = value;
-                field.setAttribute('value', value);
-                field.defaultValue = value;
+                // Check if button is disabled
+                if (buttonToClick.disabled) {
+                    console.log('⚠️ Button is disabled, stopping');
+                    break;
+                }
                 
-                // Try to trigger the field's change handler directly
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                Object.defineProperty(event, 'target', { value: field });
-                field.dispatchEvent(event);
+                buttonToClick.click();
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between clicks
                 
-                // Wait a bit more
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // Verify the value changed
+                const newValue = parseInt(field.value) || 0;
+                console.log(`After click ${i + 1}, field value is: ${newValue}`);
                 
-                console.log(`After aggressive approach, field value is: ${field.value}`);
+                // If we've reached the target, stop
+                if (newValue === targetValue) {
+                    console.log('✅ Reached target value, stopping clicks');
+                    break;
+                }
             }
             
             // Final verification
-            const finalValue = field.value;
-            console.log(`Final verification - field value: "${finalValue}", expected: "${value}"`);
+            const finalValue = parseInt(field.value) || 0;
+            console.log(`Final vehicle length: ${finalValue}, Target: ${targetValue}`);
             
-            return finalValue === value;
+            return finalValue === targetValue;
             
         } catch (error) {
-            console.error('Error setting vehicle length:', error);
+            console.error('Error setting vehicle length with buttons:', error);
             return false;
         }
     }
