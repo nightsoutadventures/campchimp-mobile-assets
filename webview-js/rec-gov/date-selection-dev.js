@@ -445,8 +445,162 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                             console.log('Clicking Clear All Filters button');
                             clearAllButton.click();
                             await new Promise(resolve => setTimeout(resolve, 250));
+                        } else {
+                            console.log('Clear All Filters button not found - no existing filters to clear');
+                        }
+                        
+                        // Always click View Results button to apply any changes and close filter panel
+                        const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
+                            const text = btn.textContent.toLowerCase();
+                            return text.includes('view') && text.includes('results');
+                        }) ||
+                        Array.from(document.querySelectorAll('button')).find(btn => {
+                            const text = btn.textContent.toLowerCase();
+                            return text.includes('view') && text.includes('results');
+                        });
+                        
+                        if (viewResultsButton) {
+                            console.log('Clicking View Results button after filter operations');
+                            viewResultsButton.click();
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        } else {
+                            console.log('View Results button not found - filter panel may be stuck open');
+                        }
+                    } else {
+                        console.log('Filter / Sort button not found');
+                    }
+                    
+                    // Step 8: Handle equipment filters if specified
+                    if (equipmentType && equipmentType.trim() !== '') {
+                        console.log('Equipment filters specified, applying equipment filters');
+
+                        // Small delay before equipment filter selection
+                        await new Promise(resolve => setTimeout(resolve, 250));
+
+                        // Click the Filter/Sort button
+                        const filterButton = document.querySelector('button.filters-button[aria-label="Filter / Sort"]') ||
+                            document.querySelector('button.sarsa-button-tertiary[aria-label="Filter / Sort"]') ||
+                            document.querySelector('button:has(.rec-icon-filter-list)') ||
+                            Array.from(document.querySelectorAll('button')).find(btn =>
+                                btn.textContent.includes('Filter') || btn.textContent.includes('Sort')
+                            );
+
+                        if (filterButton) {
+                            console.log('Clicking Filter/Sort button');
+                            filterButton.click();
+
+                            // Wait for filter panel to open
+                            await new Promise(resolve => setTimeout(resolve, 500));
                             
-                            // Click View Results button to apply the cleared filters
+                            // Add bottom padding to ensure filter buttons are visible above WebView footer
+                            console.log('📱 Adding bottom padding to filter container for WebView compatibility');
+                            const filterContainer = document.querySelector('.filter-container') ||
+                                                  document.querySelector('[data-component="FilterContainer"]') ||
+                                                  document.querySelector('.sarsa-filter-container') ||
+                                                  document.querySelector('.filter-panel') ||
+                                                  document.body;
+                            
+                            if (filterContainer) {
+                                // Add CSS to ensure bottom buttons are visible
+                                const style = document.createElement('style');
+                                style.textContent = `
+                                    .filter-container, [data-component="FilterContainer"], .sarsa-filter-container, .filter-panel {
+                                        padding-bottom: 120px !important;
+                                        margin-bottom: 120px !important;
+                                    }
+                                    /* Target the bottom action buttons specifically */
+                                    .filter-actions, .filter-buttons, .sarsa-button-group {
+                                        margin-bottom: 120px !important;
+                                        padding-bottom: 20px !important;
+                                    }
+                                    /* Ensure the page can scroll to show bottom buttons */
+                                    body {
+                                        min-height: calc(100vh + 120px) !important;
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                                console.log('✅ Added bottom padding CSS for WebView compatibility');
+                            } else {
+                                console.log('⚠️ Filter container not found, applying padding to body');
+                                const style = document.createElement('style');
+                                style.textContent = `
+                                    body {
+                                        padding-bottom: 120px !important;
+                                        min-height: calc(100vh + 120px) !important;
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            }
+                            
+                            // Handle different equipment types
+                            if (equipmentType.toLowerCase() === 'tent') {
+                                // Click tent checkbox
+                                const tentCheckbox = document.querySelector('input[type="checkbox"]#tent') ||
+                                                   document.querySelector('input[type="checkbox"][value="tent"]') ||
+                                                   document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
+                                
+                                if (tentCheckbox) {
+                                    console.log('Clicking tent checkbox');
+                                    tentCheckbox.click();
+                                } else {
+                                    console.log('Tent checkbox not found');
+                                }
+                                
+                            } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
+                                // Click RMT checkbox
+                                const rmtCheckbox = document.querySelector('input[type="checkbox"]#rmt') ||
+                                                  document.querySelector('input[type="checkbox"][value="rmt"]') ||
+                                                  document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
+                                
+                                if (rmtCheckbox) {
+                                    console.log('Clicking RMT checkbox');
+                                    rmtCheckbox.click();
+                                    
+                                    // Small delay after checkbox click
+                                    await new Promise(resolve => setTimeout(resolve, 250));
+                                    
+                                    // Wait for the vehicle length field to be fully initialized
+                                    console.log('⏳ Waiting for vehicle length field to be ready...');
+                                    await new Promise(resolve => setTimeout(resolve, 500));
+                                    
+                                    // Set vehicle length if specified
+                                    if (equipmentLength && equipmentLength.trim() !== '') {
+                                        const lengthValue = parseInt(equipmentLength);
+                                        if (!isNaN(lengthValue)) {
+                                            console.log('=== VEHICLE LENGTH SETTING START ===');
+                                            console.log(`Attempting to set vehicle length to: ${lengthValue}`);
+                                            console.log(`Equipment length parameter: "${equipmentLength}"`);
+                                            console.log(`Parsed length value: ${lengthValue}`);
+                                            
+                                            console.log('🔧 About to call setVehicleLength function...');
+                                            try {
+                                                const success = await setVehicleLength(lengthValue.toString());
+                                                console.log('🔧 setVehicleLength function completed, success:', success);
+                                                
+                                                if (success) {
+                                                    console.log('✅ Vehicle length setting completed successfully');
+                                                } else {
+                                                    console.log('❌ Vehicle length setting failed');
+                                                }
+                                            } catch (error) {
+                                                console.error('❌ Error calling setVehicleLength:', error);
+                                            }
+                                            console.log('=== VEHICLE LENGTH SETTING END ===');
+                                        } else {
+                                            console.log('❌ Invalid equipment length value:', equipmentLength);
+                                        }
+                                    } else {
+                                        console.log('ℹ️ No equipment length specified, skipping vehicle length setting');
+                                    }
+                                } else {
+                                    console.log('RMT checkbox not found');
+                                }
+                            }
+
+                            // Small delay after equipment filter selection
+                            await new Promise(resolve => setTimeout(resolve, 250));
+                            
+                            // GRACEFUL FAILURE: Always try to close filter panel and apply results
                             const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
                                 const text = btn.textContent.toLowerCase();
                                 return text.includes('view') && text.includes('results');
@@ -457,200 +611,17 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                             });
                             
                             if (viewResultsButton) {
-                                console.log('Clicking View Results button after clearing filters');
+                                console.log('Clicking View Results button to apply equipment filters');
                                 viewResultsButton.click();
-                                await new Promise(resolve => setTimeout(resolve, 500));
                             } else {
-                                console.log('View Results button not found after clearing filters');
+                                console.log('View Results button not found - filter panel may be stuck open');
                             }
                         } else {
-                            console.log('Clear All Filters button not found');
+                            console.log('Filter/Sort button not found');
                         }
                     } else {
-                        console.log('Filter / Sort button not found');
-                    }
-                    
-                    // Step 8: Handle equipment filters if specified
-                    if (equipmentType && equipmentType.trim() !== '') {
-            console.log('Equipment filters specified, applying equipment filters');
-
-            // Small delay before equipment filter selection
-            await new Promise(resolve => setTimeout(resolve, 250));
-
-            // Click the Filter/Sort button
-            const filterButton = document.querySelector('button.filters-button[aria-label="Filter / Sort"]') ||
-                document.querySelector('button.sarsa-button-tertiary[aria-label="Filter / Sort"]') ||
-                document.querySelector('button:has(.rec-icon-filter-list)') ||
-                Array.from(document.querySelectorAll('button')).find(btn =>
-                    btn.textContent.includes('Filter') || btn.textContent.includes('Sort')
-                );
-
-            if (filterButton) {
-                console.log('Clicking Filter/Sort button');
-                filterButton.click();
-
-                                // Wait for filter panel to open
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Add bottom padding to ensure filter buttons are visible above WebView footer
-                console.log('📱 Adding bottom padding to filter container for WebView compatibility');
-                const filterContainer = document.querySelector('.filter-container') ||
-                                      document.querySelector('[data-component="FilterContainer"]') ||
-                                      document.querySelector('.sarsa-filter-container') ||
-                                      document.querySelector('.filter-panel') ||
-                                      document.body;
-                
-                if (filterContainer) {
-                    // Add CSS to ensure bottom buttons are visible
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        .filter-container, [data-component="FilterContainer"], .sarsa-filter-container, .filter-panel {
-                            padding-bottom: 120px !important;
-                            margin-bottom: 120px !important;
-                        }
-                        /* Target the bottom action buttons specifically */
-                        .filter-actions, .filter-buttons, .sarsa-button-group {
-                            margin-bottom: 120px !important;
-                            padding-bottom: 20px !important;
-                        }
-                        /* Ensure the page can scroll to show bottom buttons */
-                        body {
-                            min-height: calc(100vh + 120px) !important;
-                        }
-                    `;
-                    document.head.appendChild(style);
-                    console.log('✅ Added bottom padding CSS for WebView compatibility');
-                } else {
-                    console.log('⚠️ Filter container not found, applying padding to body');
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        body {
-                            padding-bottom: 120px !important;
-                            min-height: calc(100vh + 120px) !important;
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-                
-                // Clear any existing equipment filter checkboxes first
-                const existingTentCheckbox = document.querySelector('input[type="checkbox"]#tent:checked') ||
-                                           document.querySelector('input[type="checkbox"][value="tent"]:checked') ||
-                                           document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]:checked');
-                
-                const existingRmtCheckbox = document.querySelector('input[type="checkbox"]#rmt:checked') ||
-                                          document.querySelector('input[type="checkbox"][value="rmt"]:checked') ||
-                                          document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]:checked');
-                
-                if (existingTentCheckbox) {
-                    console.log('Clearing existing tent checkbox');
-                    existingTentCheckbox.click();
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-                
-                if (existingRmtCheckbox) {
-                    console.log('Clearing existing RMT checkbox');
-                    existingRmtCheckbox.click();
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-                
-                // Small delay after clearing existing checkboxes
-                await new Promise(resolve => setTimeout(resolve, 200));
-                
-                // Handle different equipment types
-                if (equipmentType.toLowerCase() === 'tent') {
-                    // Click tent checkbox
-                    const tentCheckbox = document.querySelector('input[type="checkbox"]#tent') ||
-                                       document.querySelector('input[type="checkbox"][value="tent"]') ||
-                                       document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]');
-                    
-                    if (tentCheckbox) {
-                        console.log('Clicking tent checkbox');
-                        tentCheckbox.click();
-                    } else {
-                        console.log('Tent checkbox not found');
-                    }
-                    
-                                                // Vehicle length already cleared at the beginning for all cases
-                    
-                } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
-                    // Click RMT checkbox
-                    const rmtCheckbox = document.querySelector('input[type="checkbox"]#rmt') ||
-                                      document.querySelector('input[type="checkbox"][value="rmt"]') ||
-                                      document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]');
-                    
-                    if (rmtCheckbox) {
-                        console.log('Clicking RMT checkbox');
-                        rmtCheckbox.click();
-                        
-                        // Small delay after checkbox click
-                        await new Promise(resolve => setTimeout(resolve, 250));
-                        
-                        // Wait for the vehicle length field to be fully initialized
-                        console.log('⏳ Waiting for vehicle length field to be ready...');
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        
-                        // Set vehicle length if specified
-                        if (equipmentLength && equipmentLength.trim() !== '') {
-                            const lengthValue = parseInt(equipmentLength);
-                            if (!isNaN(lengthValue)) {
-                                console.log('=== VEHICLE LENGTH SETTING START ===');
-                                console.log(`Attempting to set vehicle length to: ${lengthValue}`);
-                                console.log(`Equipment length parameter: "${equipmentLength}"`);
-                                console.log(`Parsed length value: ${lengthValue}`);
-                                
-                                console.log('🔧 About to call setVehicleLength function...');
-                                try {
-                                    const success = await setVehicleLength(lengthValue.toString());
-                                    console.log('🔧 setVehicleLength function completed, success:', success);
-                                    
-                                    if (success) {
-                                        console.log('✅ Vehicle length setting completed successfully');
-                                    } else {
-                                        console.log('❌ Vehicle length setting failed');
-                                    }
-                                } catch (error) {
-                                    console.error('❌ Error calling setVehicleLength:', error);
-                                }
-                                console.log('=== VEHICLE LENGTH SETTING END ===');
-                            } else {
-                                console.log('❌ Invalid equipment length value:', equipmentLength);
-                            }
-                        } else {
-                            console.log('ℹ️ No equipment length specified, skipping vehicle length setting');
-                        }
-                    } else {
-                        console.log('RMT checkbox not found');
-                    }
-                }
-
-                // Small delay after equipment filter selection
-                await new Promise(resolve => setTimeout(resolve, 250));
-            } else {
-                console.log('Filter/Sort button not found');
-            }
-                                                } else {
                         console.log('No equipment filters specified, filters already cleared at the beginning');
                     }
-
-                // Step 8: Click View Results button (if equipment filters were applied)
-        if (equipmentType && equipmentType.trim() !== '') {
-            // Use a more compatible selector approach
-            const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
-                const text = btn.textContent.toLowerCase();
-                return text.includes('view') && text.includes('results');
-            }) ||
-            Array.from(document.querySelectorAll('button')).find(btn => {
-                const text = btn.textContent.toLowerCase();
-                return text.includes('view') && text.includes('results');
-            });
-            
-            if (viewResultsButton) {
-                console.log('Clicking View Results button');
-                viewResultsButton.click();
-            } else {
-                console.log('View Results button not found');
-            }
-        }
 
         return true;
 
