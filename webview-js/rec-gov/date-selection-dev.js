@@ -417,10 +417,61 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             console.log('Calendar auto-dismissed successfully');
         }
 
-        console.log('Date selection completed successfully');
-
-        // Step 7: Handle equipment filters if specified
-        if (equipmentType && equipmentType.trim() !== '') {
+                            console.log('Date selection completed successfully');
+                    
+                    // Step 7: Always clear all filters first to start with a clean state
+                    console.log('Clearing all existing filters to start with a clean state');
+                    
+                    // Click the Filter / Sort button to open the filter panel
+                    const filterButton = document.querySelector('button[data-component="Button"].filters-button') ||
+                                       document.querySelector('button[aria-label="Filter / Sort"]') ||
+                                       Array.from(document.querySelectorAll('button')).find(btn => {
+                                           const text = btn.textContent.toLowerCase();
+                                           return text.includes('filter') && text.includes('sort');
+                                       });
+                    
+                    if (filterButton) {
+                        console.log('Clicking Filter / Sort button to open filter panel');
+                        filterButton.click();
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        // Look for the "Clear All Filters" button
+                        const clearAllButton = Array.from(document.querySelectorAll('button')).find(btn => {
+                            const text = btn.textContent.toLowerCase();
+                            return text.includes('clear') && text.includes('filter');
+                        });
+                        
+                        if (clearAllButton) {
+                            console.log('Clicking Clear All Filters button');
+                            clearAllButton.click();
+                            await new Promise(resolve => setTimeout(resolve, 250));
+                            
+                            // Click View Results button to apply the cleared filters
+                            const viewResultsButton = Array.from(document.querySelectorAll('button.sarsa-button-primary')).find(btn => {
+                                const text = btn.textContent.toLowerCase();
+                                return text.includes('view') && text.includes('results');
+                            }) ||
+                            Array.from(document.querySelectorAll('button')).find(btn => {
+                                const text = btn.textContent.toLowerCase();
+                                return text.includes('view') && text.includes('results');
+                            });
+                            
+                            if (viewResultsButton) {
+                                console.log('Clicking View Results button after clearing filters');
+                                viewResultsButton.click();
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                            } else {
+                                console.log('View Results button not found after clearing filters');
+                            }
+                        } else {
+                            console.log('Clear All Filters button not found');
+                        }
+                    } else {
+                        console.log('Filter / Sort button not found');
+                    }
+                    
+                    // Step 8: Handle equipment filters if specified
+                    if (equipmentType && equipmentType.trim() !== '') {
             console.log('Equipment filters specified, applying equipment filters');
 
             // Small delay before equipment filter selection
@@ -519,9 +570,7 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                         console.log('Tent checkbox not found');
                     }
                     
-                    // Clear vehicle length for tent (tents don't need vehicle length)
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    await clearVehicleLength();
+                                                // Vehicle length already cleared at the beginning for all cases
                     
                 } else if (equipmentType.toLowerCase() === 'rv' || equipmentType.toLowerCase() === 'trailer') {
                     // Click RMT checkbox
@@ -579,35 +628,9 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             } else {
                 console.log('Filter/Sort button not found');
             }
-        } else {
-            console.log('No equipment filters specified, clearing any existing equipment filters');
-            
-            // Clear any existing equipment filter checkboxes
-            const existingTentCheckbox = document.querySelector('input[type="checkbox"]#tent:checked') ||
-                                       document.querySelector('input[type="checkbox"][value="tent"]:checked') ||
-                                       document.querySelector('input[type="checkbox"][data-rectagaction*="tent"]:checked');
-            
-            const existingRmtCheckbox = document.querySelector('input[type="checkbox"]#rmt:checked') ||
-                                      document.querySelector('input[type="checkbox"][value="rmt"]:checked') ||
-                                      document.querySelector('input[type="checkbox"][data-rectagaction*="rmt"]:checked');
-            
-            if (existingTentCheckbox) {
-                console.log('Clearing existing tent checkbox');
-                existingTentCheckbox.click();
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            if (existingRmtCheckbox) {
-                console.log('Clearing existing RMT checkbox');
-                existingRmtCheckbox.click();
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            // Clear vehicle length if it's not 0
-            await clearVehicleLength();
-            
-            console.log('Equipment filter clearing completed');
-        }
+                                                } else {
+                        console.log('No equipment filters specified, filters already cleared at the beginning');
+                    }
 
                 // Step 8: Click View Results button (if equipment filters were applied)
         if (equipmentType && equipmentType.trim() !== '') {
