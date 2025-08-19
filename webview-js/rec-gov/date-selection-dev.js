@@ -44,17 +44,99 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
 
     // Helper function to set vehicle length with enhanced WebView compatibility
     async function setVehicleLength(value) {
-        const field = document.getElementById('vehicle-length');
+        console.log('🔍 Starting vehicle length field detection...');
+        
+        // Try multiple selectors to find the vehicle length field
+        let field = document.getElementById('vehicle-length');
+        if (field) {
+            console.log('✅ Found field by ID: vehicle-length');
+        } else {
+            console.log('❌ Field not found by ID: vehicle-length');
+        }
         
         if (!field) {
-            console.error('Vehicle length field not found');
+            field = document.querySelector('input[name="numberField"]');
+            if (field) {
+                console.log('✅ Found field by name: numberField');
+            } else {
+                console.log('❌ Field not found by name: numberField');
+            }
+        }
+        
+        if (!field) {
+            field = document.querySelector('input[pattern="\\d*"]');
+            if (field) {
+                console.log('✅ Found field by pattern: \\d*');
+            } else {
+                console.log('❌ Field not found by pattern: \\d*');
+            }
+        }
+        
+        if (!field) {
+            field = document.querySelector('input.with-unit-after');
+            if (field) {
+                console.log('✅ Found field by class: with-unit-after');
+            } else {
+                console.log('❌ Field not found by class: with-unit-after');
+            }
+        }
+        
+        if (!field) {
+            console.log('🔍 Trying fallback detection for any input with "length"...');
+            // Try to find any input field that might be the vehicle length field
+            const allInputs = document.querySelectorAll('input[type="text"]');
+            console.log(`Found ${allInputs.length} text input fields`);
+            
+            field = Array.from(allInputs).find(input => {
+                const hasLength = input.id.includes('length') || 
+                                input.name.includes('length') || 
+                                input.placeholder?.includes('length') ||
+                                input.getAttribute('aria-describedby')?.includes('length');
+                if (hasLength) {
+                    console.log('✅ Found field by fallback detection:', {
+                        id: input.id,
+                        name: input.name,
+                        placeholder: input.placeholder,
+                        'aria-describedby': input.getAttribute('aria-describedby')
+                    });
+                }
+                return hasLength;
+            });
+            
+            if (!field) {
+                console.log('❌ No field found by fallback detection');
+            }
+        }
+        
+        if (!field) {
+            console.error('Vehicle length field not found - tried multiple selectors');
+            console.log('Available input fields:', Array.from(document.querySelectorAll('input')).map(i => ({
+                id: i.id,
+                name: i.name,
+                type: i.type,
+                placeholder: i.placeholder,
+                'aria-describedby': i.getAttribute('aria-describedby')
+            })));
             return false;
         }
         
-        console.log('Setting vehicle length with enhanced WebView compatibility');
+        console.log('🔍 Found vehicle length field:', {
+            id: field.id,
+            name: field.name,
+            type: field.type,
+            currentValue: field.value,
+            placeholder: field.placeholder,
+            'aria-describedby': field.getAttribute('aria-describedby'),
+            visible: field.offsetParent !== null,
+            disabled: field.disabled,
+            readonly: field.readOnly
+        });
         
         try {
+            console.log('🎯 Starting vehicle length value setting process...');
+            
             // Simulate touch events for mobile WebView
+            console.log('📱 Dispatching touchstart event...');
             field.dispatchEvent(new TouchEvent('touchstart', {
                 bubbles: true,
                 cancelable: true,
@@ -67,24 +149,42 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
             }));
             
             await new Promise(resolve => setTimeout(resolve, 50));
+            console.log('⏱️ After touchstart delay');
             
+            console.log('🎯 Focusing field...');
             field.focus();
             await new Promise(resolve => setTimeout(resolve, 100));
+            console.log('⏱️ After focus delay');
             
+            console.log('🖱️ Clicking field...');
             field.click(); // Sometimes needed for WebView
             await new Promise(resolve => setTimeout(resolve, 100));
+            console.log('⏱️ After click delay');
             
             // Clear existing value
+            console.log('🧹 Clearing existing value...');
+            const oldValue = field.value;
             field.value = '';
+            console.log(`Cleared value from "${oldValue}" to ""`);
             await new Promise(resolve => setTimeout(resolve, 50));
             
             // Set new value using multiple approaches
+            console.log(`📝 Setting new value to "${value}"...`);
             field.value = value;
             field.setAttribute('value', value);
+            console.log(`Field value after setting: "${field.value}"`);
+            console.log(`Field attribute value after setting: "${field.getAttribute('value')}"`);
             
-            // More comprehensive event dispatching
-            ['input', 'change', 'keyup', 'blur'].forEach(eventType => {
-                field.dispatchEvent(new Event(eventType, { bubbles: true }));
+            // Try to trigger React/Vue/Angular change detection
+            field.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            field.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            // Additional events that might be needed
+            ['keyup', 'keydown', 'blur', 'focus'].forEach(eventType => {
+                field.dispatchEvent(new Event(eventType, { bubbles: true, cancelable: true }));
             });
             
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -94,8 +194,11 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                 cancelable: true
             }));
             
-            console.log(`Vehicle length set to: ${value}`);
-            return true;
+            // Verify the value was set
+            await new Promise(resolve => setTimeout(resolve, 100));
+            console.log(`Vehicle length set to: ${value}, field value is now: ${field.value}`);
+            
+            return field.value === value;
             
         } catch (error) {
             console.error('Error setting vehicle length:', error);
@@ -388,12 +491,24 @@ async function selectCampingDates(startDate, endDate, equipmentType = '', equipm
                         if (equipmentLength && equipmentLength.trim() !== '') {
                             const lengthValue = parseInt(equipmentLength);
                             if (!isNaN(lengthValue)) {
-                                console.log(`Setting vehicle length to: ${lengthValue}`);
+                                console.log('=== VEHICLE LENGTH SETTING START ===');
+                                console.log(`Attempting to set vehicle length to: ${lengthValue}`);
+                                console.log(`Equipment length parameter: "${equipmentLength}"`);
+                                console.log(`Parsed length value: ${lengthValue}`);
+                                
                                 const success = await setVehicleLength(lengthValue.toString());
-                                if (!success) {
-                                    console.log('Failed to set vehicle length');
+                                
+                                if (success) {
+                                    console.log('✅ Vehicle length setting completed successfully');
+                                } else {
+                                    console.log('❌ Vehicle length setting failed');
                                 }
+                                console.log('=== VEHICLE LENGTH SETTING END ===');
+                            } else {
+                                console.log('❌ Invalid equipment length value:', equipmentLength);
                             }
+                        } else {
+                            console.log('ℹ️ No equipment length specified, skipping vehicle length setting');
                         }
                     } else {
                         console.log('RMT checkbox not found');
