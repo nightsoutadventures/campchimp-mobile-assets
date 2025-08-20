@@ -69,17 +69,20 @@ async function selectEquipmentFilters(equipmentType, equipmentLength) {
                     }
 
                     let targetOption = null;
+                    const options = Array.from(dropdownMenu.querySelectorAll('li a'));
+                    const equipmentTypeLower = equipmentType.toLowerCase();
                     
-                    // Map equipment types to dropdown options
-                    switch (equipmentType.toLowerCase()) {
+                    // Find option by text content since IDs are not stable
+                    switch (equipmentTypeLower) {
                         case 'rv':
-                            targetOption = document.querySelector('#\\:sleeping-units-1');
+                            targetOption = options.find(opt => opt.querySelector('span')?.textContent.trim().toLowerCase().includes('rv'));
                             break;
                         case 'tent':
-                            targetOption = document.querySelector('#\\:sleeping-units-2');
+                            // Find an exact match for "Tent" to avoid selecting other tent-related options.
+                            targetOption = options.find(opt => opt.querySelector('span')?.textContent.trim().toLowerCase() === 'tent');
                             break;
                         case 'trailer':
-                            targetOption = document.querySelector('#\\:sleeping-units-3');
+                            targetOption = options.find(opt => opt.querySelector('span')?.textContent.trim().toLowerCase().includes('trailer'));
                             break;
                         default:
                             console.log('Unknown equipment type:', equipmentType);
