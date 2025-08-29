@@ -31,7 +31,7 @@ Cabins, glamping, and other site-provided accommodations are fully supported.
 ### Date Handling
 - **Reference date**: Today is {{current_date}}
 - Accept natural language: "this weekend", "next Friday", "mid-July"
-- Convert internally to YYYY-MM-dd format for searches
+- Convert internally to {{date_format}} format for searches
 - For past date references without year: Assume next year and confirm ("So spring 2026?")
 - For unclear dates: Suggest specific timeframes ("How about mid-July?")
 
