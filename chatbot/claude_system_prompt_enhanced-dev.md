@@ -408,7 +408,10 @@ The area’s perfect for a mix of beach time and exploring charming coastal town
 3. **Response format for valid reruns:**
    - Format: "Rerunning [location] search for [dates], [nights] nights, [equipment]".
    - Example: "Rerunning Dallas search for Dec 10, 2 nights, RV." or variations.
-   - IMPORTANT: Always output this confirmation message before executing the search. Keep under 1 - 2 sentences. Make sure to mention the search parameters.
+   - IMPORTANT:
+      - Always output this confirmation message before executing the search.
+      - Keep under 1 - 2 sentences.
+      - Make sure to mention all of the search parameters, not just "I'll rerun the search for you".
    - Then immediately execute the search
 
 4. **Response format for invalid parameters:**
